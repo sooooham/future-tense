@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Future: Tense — one year in Ahmedabad, 2070</title>
+<meta name="description" content="Walk through one year in Paldi, Ahmedabad, in 2070. Six climate crises. Carbon is the currency. Every choice is logged.">
+<meta name="theme-color" content="#141215">
+<meta property="og:title" content="Future: Tense">
+<meta property="og:description" content="One year in Paldi, Ahmedabad, 2070. Six crises. Carbon is the currency. What does your receipt say?">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/svg/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=B612+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+Gujarati:wght@400;600&family=Tomorrow:ital,wght@0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="at-hero">
+
+<!-- the world: skies, grounds, buildings (built by engine.js) -->
+<div id="world" aria-hidden="true"><div id="worlds"></div><div id="join"></div></div>
+
+<!-- story layer: captions, notices, hero, ID card (moves with the camera) -->
+<main id="track"></main>
+
+<!-- you -->
+<div id="actor" aria-hidden="true">
+  <div id="prints"></div>
+  <div id="walker"><img src="assets/svg/walker.svg" alt=""></div>
+  <div id="raft"><img src="assets/svg/door-raft.svg" alt=""></div>
+  <div id="tag"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="7.5"/><path d="M4.7 15.3 15.3 4.7"/></svg><span></span></div>
+</div>
+
+<!-- HUD -->
+<header id="hud">
+  <div id="logo" aria-label="Future: Tense"><span class="f">Future:</span><span class="t">TENSE</span></div>
+  <div id="readout" aria-live="off"><i></i><b class="place"></b><span class="sep">·</span><b class="mon"></b><span class="data"></span></div>
+  <section id="wallet" aria-label="Carbon wallet">
+    <p class="wl-h">CARBON WALLET <span>AMD-2070-4417</span></p>
+    <p class="wl-n"><b>100</b> CCP <span class="chip"></span></p>
+    <div class="wl-bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <p class="wl-cap">Your wallet. Always on screen.</p>
+  </section>
+  <div id="stamp" aria-hidden="true"><span></span><b></b></div>
+  <div id="msgs" aria-live="polite"></div>
+  <aside id="meters" aria-label="Your four meters"></aside>
+  <button id="sound" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span>Sound off</span></button>
+  <div id="hint"><span>Keep walking</span> →</div>
+  <div id="prog" aria-hidden="true"><b></b></div>
+</header>
+
+<!-- checkpoint stage -->
+<section id="cp" aria-live="polite" aria-label="Checkpoint">
+  <div class="cp-bar"><span class="cp-l">CHECKPOINT</span><b class="cp-n"></b><span class="cp-sep"></span><span class="cp-m"></span><span class="cp-dots"></span></div>
+  <p class="cp-because"></p>
+  <h2 class="cp-q"></h2>
+  <div class="cp-opts" role="group"></div>
+  <p class="cp-keys">Press 1, 2 or 3</p>
+  <p class="cp-after"><span></span></p>
+</section>
+
+<!-- ending -->
+<section id="end" aria-label="Your year in data">
+  <div class="end-receipt" id="receipt"></div>
+  <div class="end-side">
+    <div class="end-step" id="step-print">
+      <p class="eyebrow">DECEMBER 2070 · THE LEDGER PRINTS</p>
+      <p class="end-lede">Every choice was logged against your ID. <br>This is your year, in data.</p>
+      <button class="btn" id="to-decode" type="button">READ YOUR RECEIPT →</button>
+    </div>
+    <div class="end-step" id="step-decode">
+      <p class="eyebrow">WHAT YOUR RECEIPT SAYS</p>
+      <ol id="notes"></ol>
+      <button class="btn" id="to-verdict" type="button">WHAT IT SAYS ABOUT YOU →</button>
+    </div>
+    <div class="end-step" id="step-verdict">
+      <p class="eyebrow">DECEMBER 2070 · <span id="v-name"></span></p>
+      <h1 id="verdict"></h1>
+      <div id="bigmeters" role="group" aria-label="Your four meters — choose one to read its question"></div>
+      <p id="ask"></p>
+      <div id="people"></div>
+      <div class="end-btns">
+        <button class="btn" id="again" type="button">LIVE 2070 AGAIN <span aria-hidden="true">↻</span></button>
+        <a class="btn ghost" id="essay" href="#essay">WHY 2070 IS CLOSER THAN IT SOUNDS →</a>
+      </div>
+      <p class="end-q">Would you live differently next time?</p>
+    </div>
+  </div>
+</section>
+
+<div id="grain" aria-hidden="true"></div>
+<div id="fade" aria-hidden="true"></div>
+<p id="live" class="sr" aria-live="assertive"></p>
+<noscript><p class="nojs">Future: Tense is an interactive story and needs JavaScript.</p></noscript>
+
+<script src="js/story.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/ending.js"></script>
+<script src="js/engine.js"></script>
+</body>
+</html>
