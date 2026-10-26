@@ -112,7 +112,7 @@
     B.forEach((b, i) => {
       const bt = el('section', 'beat'); bt.dataset.i = i; b.el = bt; strip.append(bt);
       if (b.gate === 'hero') bt.append(heroEl = buildHero());
-      if (b.gate === 'id') bt.append(idEl = buildId());
+      if (b.gate === 'id') { bt.append(idEl = buildId()); idEl.inert = true; }   /* off-screen steps stay out of the Tab order */
       (b.say || []).forEach(c => {
         const e = el('p', 'cap'); bt.append(e);
         caps.push({ el: e, beat: i, spec: c });
@@ -384,7 +384,7 @@
   /* ---------- prologue ---------- */
   function enter() {
     if (S.entered) return;
-    S.entered = true; stage = 'id';
+    S.entered = true; stage = 'id'; heroEl.inert = true; idEl.inert = false;
     if (soundWanted && !AUDIO.on) setSound(true);
     body.classList.remove('at-hero'); body.classList.add('docked'); styleLogo();
     walk.target = W * (phone ? .05 : .07);
@@ -395,7 +395,7 @@
     if (S.signed) return;
     S.name = (nameInput.value.trim() || STORY.DEFAULT_NAME).toUpperCase().slice(0, 20);
     nameInput.value = S.name; nameInput.readOnly = true;
-    S.signed = true; stage = 'walk';
+    S.signed = true; stage = 'walk'; idEl.inert = true;
     cardEl.classList.add('signed'); body.classList.add('signed');
     AUDIO.stamp();
     say(`${UI.signedAs(S.name)} ${UI.wallet(S.ccp)}`);
@@ -543,7 +543,7 @@
     cpEl.querySelector('.cp-lead').innerHTML = lead.map(t => `<p><span>${T(t)}</span></p>`).join('');
     cpEl.querySelector('.cp-q').textContent = T(cp.q);
     const box = cpEl.querySelector('.cp-opts'); box.innerHTML = ''; box.setAttribute('aria-label', cp.q);
-    box.style.setProperty('--n', opts.length);
+    box.style.setProperty('--n', opts.length); box.inert = false;
     let armed = -1, lastPointer = '';
     opts.forEach((o, j) => {
       const lock = lockOf(o), p = o.price;
@@ -595,6 +595,7 @@
     if (silent) { cpNow = null; return r; }
     stage = 'after';
     AUDIO.pick(); btn.classList.add('sel'); cpEl.classList.add('chose'); preview(null);
+    cpEl.querySelector('.cp-opts').inert = true;
     const after = cpEl.querySelector('.cp-after');
     after.querySelector('span').innerHTML = T(o.after || '');
     setTimeout(() => {
@@ -804,7 +805,7 @@
   function jump(n, path = []) {
     fresh({ name: S.name, entered: true, signed: true }); arrived = {};
     cpNow = null; cpEl.className = ''; body.classList.remove('cp-on', 'ending', 'at-hero'); body.classList.add('docked', 'signed');
-    nameInput.value = S.name; cardEl.classList.add('signed');
+    nameInput.value = S.name; cardEl.classList.add('signed'); heroEl.inert = idEl.inert = true;
     let c = 0;
     for (let i = 0; i < Math.min(n, N); i++) {
       runEnter(i, true);
