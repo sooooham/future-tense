@@ -12,6 +12,20 @@
 const STORY = {};
 
 STORY.START = { ccp: 100, meter: 6, max: 12 };
+
+/* No widows (R2-02): joins the last two words of a story string with a
+   no-break space, skipping over tags. engine.js and ending.js run every
+   caption, card, after-line, message and verdict through this.          */
+STORY.tidy = html => {
+  if (typeof html !== 'string') return html;
+  html = html.trim();
+  for (let i = html.length - 1, tag = 0; i > 0; i--) {
+    const c = html[i];
+    if (c === '>') tag++; else if (c === '<') tag--;
+    else if (!tag && c === ' ') return html.slice(0, i) + '\u00a0' + html.slice(i + 1);
+  }
+  return html;
+};
 STORY.ID = 'AMD-2070-4417';
 STORY.DEFAULT_NAME = 'CITIZEN-4417';
 
@@ -58,7 +72,7 @@ STORY.WORLDS = {
   intro:  { sky: 'sky-intro',  ground: 'ground-intro-tile',  tint: '#6f7d64', haze: '#a9b39a', tag: null,
             place: 'PALDI, AHMEDABAD', month: 'JAN 2070', data: ['CARBON ID REQUIRED'], color: '#a9b39a',
             snd: { f: 55, w: .32, wf: 520, r: 0 } },
-  work:   { sky: 'sky-city',   ground: 'ground-city-tile',   tint: '#6f8a7c', haze: '#a3b4a5', tag: 'WORK',
+  work:   { sky: 'sky-city',   ground: 'ground-city-tile',   tint: '#6f8a7c', haze: '#a3b4a5', tag: 'EMPLOYMENT',
             place: 'OLD CITY · ASHRAM ROAD', month: 'FEB 2070', data: ['WINTER 14°C', 'MILLS SHUT 61%'], color: '#7fa08f',
             snd: { f: 51.9, w: .26, wf: 600, r: 0 } },
   water:  { sky: 'sky-water',  ground: 'ground-water-tile',  tint: '#c98c45', haze: '#d9a96a', tag: 'WATER',
@@ -73,15 +87,15 @@ STORY.WORLDS = {
   health: { sky: 'sky-health', ground: 'ground-health-tile', tint: '#a7b13a', haze: '#c9cf7c', tag: 'HEALTH',
             place: 'V.S. HOSPITAL · ELLISBRIDGE', month: 'OCT 2070', data: ['AQI 356', 'FEVER CASES 4,200'], color: '#bcc46a',
             snd: { f: 43.65, w: .22, wf: 450, r: 0 } },
-  match:  { sky: 'sky-repro',  ground: 'sea-repro-tile', sea: true, tint: '#b49870', haze: '#d8c7a6', tag: 'MATCH',
+  match:  { sky: 'sky-repro',  ground: 'sea-repro-tile', sea: true, tint: '#b49870', haze: '#d8c7a6', tag: 'PROCREATION',
             place: 'PALDI · WINTER SMOG', month: 'DEC 2070', data: ['BIRTH RATE 0.6', 'MICROPLASTICS IN 97% OF BLOOD'], color: '#d8c7a6',
             snd: { f: 55, w: .4, wf: 260, r: 0 }, raft: true }
 };
 
 /* Hero timeline on the ground */
 STORY.TIMELINE = [
-  ['WORK', 'FEB 2070', 'work'], ['WATER', 'APR 2070', 'water'], ['FOOD', 'JUN 2070', 'food'],
-  ['FLOOD', 'AUG 2070', 'flood'], ['HEALTH', 'OCT 2070', 'health'], ['MATCH', 'DEC 2070', 'match']
+  ['EMPLOYMENT', 'FEB 2070', 'work'], ['WATER', 'APR 2070', 'water'], ['FOOD', 'JUN 2070', 'food'],
+  ['FLOOD', 'AUG 2070', 'flood'], ['HEALTH', 'OCT 2070', 'health'], ['PROCREATION', 'DEC 2070', 'match']
 ];
 
 /* ---------- people who paid for you / people you held ---------- */
@@ -118,7 +132,7 @@ STORY.BEATS = [
           { html: 'Everything costs carbon. Your wallet shows what’s left.', x: .3, y: .38 }],
     props: [{ src: 'dead-tree', x: .66, s: .75, layer: 'mid' }, { src: 'sapling', x: .88, s: 1, layer: 'near' }] },
 
-  /* ---- 01 · FEB · WORK ---- */
+  /* ---- 01 · FEB · EMPLOYMENT ---- */
   { w: 'work',
     say: [{ html: 'Export orders are cancelled. The <b>textile mills</b> fall silent.', x: .06, y: .2 }],
     props: [{ src: 'teen-darwaza', x: .52, s: .75, layer: 'far' }, { src: 'jhulta-minar', x: .86, s: .8, layer: 'far' },
@@ -141,8 +155,8 @@ STORY.BEATS = [
             { src: 'embankment', x: 0, w: 1.02, h: .15, layer: 'mid', sink: -.02 },
             { src: 'dead-tree', x: .7, s: .8, layer: 'near', sink: .03 }] },
   { w: 'water',
-    notice: { x: .58, header: 'PUBLIC NOTICE', order: 'ARA · 14/2070', title: 'WATER ALLOCATION', big: '30 MIN',
-              sub: 'per household, per day · 06:00–06:30', gu: 'પાણી બચાવો', en: 'Save water' },
+    notice: { x: .58, header: 'PUBLIC NOTICE', order: 'ARA · 04/2070', title: 'WATER ALLOCATION', big: '30 MIN',
+              sub: 'per household, per day<br>06:00–06:30', gu: 'પાણી બચાવો', en: 'Save water' },
     say: [{ html: 'The riverfront wall still stands. There is <b>no river</b> behind it.', x: .08, y: .2 }],
     props: [{ src: 'apartment', x: .2, s: .58, layer: 'far', sink: -.13 }, { src: 'embankment', x: -.01, w: 1.02, h: .15, layer: 'mid', sink: -.02 }] },
   { w: 'water', gate: 'water',
@@ -161,7 +175,7 @@ STORY.BEATS = [
         msg: { from: 'MRS. PATEL · 3B', time: '07:40', text: 'Left some methi at your door, beta.' } }
     ] },
   { w: 'food',
-    notice: { x: .44, header: 'RATION NOTICE', order: 'ARA · 31/2070', title: 'SYN-NUT TABLETS', big: '3 / DAY',
+    notice: { x: .44, header: 'RATION NOTICE', order: 'ARA · 06/2070', title: 'SYN-NUT TABLETS', big: '3 / DAY',
               sub: 'free for every citizen · not for long-term use', gu: 'પોષણ ગોળી', en: 'Nutrition tablet' },
     html: [{ x: .74, layer: 'near', cls: 'board',
              html: '<b>SANAND MANDI</b><span>Tomatoes · 1 kg</span><strong>40 CCP</strong><span>Onions · 1 kg</span><strong>28 CCP</strong><em>Imported · Rotterdam vertical farm</em>' }],
@@ -198,7 +212,7 @@ STORY.BEATS = [
         msg: { from: 'TOWER CONCIERGE', text: 'From the tower, the hospital is a boat ride. 20 CCP debited.' } }
     ] },
   { w: 'health',
-    notice: { x: .56, header: 'HEALTH ORDER', order: 'ARA · 52/2070', title: 'HOSPITAL ACCESS', big: '1 PASS',
+    notice: { x: .56, header: 'HEALTH ORDER', order: 'ARA · 10/2070', title: 'HOSPITAL ACCESS', big: '1 PASS',
               sub: 'per citizen, per year · no exceptions', gu: 'એક વ્યક્તિ, એક પાસ', en: 'One person, one pass' },
     say: [{ html: s => s.has('shared')
               ? 'A knock at 2 a.m. It’s <b>Mrs. Patel.</b> She once left methi at your door.'
@@ -207,7 +221,7 @@ STORY.BEATS = [
   { w: 'health', gate: 'health',
     props: [{ src: 'pol-rose', x: .66, s: 1, layer: 'mid' }, { src: 'sapling', x: .3, s: 1, layer: 'near', sink: .03 }] },
 
-  /* ---- 06 · DEC · MATCH ---- */
+  /* ---- 06 · DEC · PROCREATION ---- */
   { w: 'match',
     say: [{ html: 'Ahmedabad’s birth rate falls to <b>0.6</b>. The city is running out of children.', x: .1, y: .2 },
           { html: s => `Your wallet: <b>${s.ccp} CCP.</b>`, x: .16, y: .32, when: s => s.ccp < 20 }],
@@ -241,7 +255,7 @@ STORY.phone = s => `
   <p class="ph-reward"><b>+${STORY.matchReward(s)} CCP for life</b>First child expected by 2072</p>
   <div class="ph-btns"><span>Accept</span><span>Decline</span></div>
   <p class="ph-meet">Meet first · NOT PERMITTED</p>
-  <p class="ph-order">Order 3/2070 · Ahmedabad Resource Authority</p>`;
+  <p class="ph-order">Order 12/2070 · ARA</p>`;
 
 /* ---------- checkpoints ----------
    price: CCP change (negative = cost). Options lock if you can't afford them.
@@ -250,7 +264,7 @@ STORY.phone = s => `
    opts(s) can swap options based on earlier flags (callbacks).           */
 STORY.CHECKPOINTS = {
   work: {
-    n: 1, month: 'FEB', label: 'WORK',
+    n: 1, month: 'FEB', label: 'EMPLOYMENT',
     q: 'Your mill just shut. Rent is due in CCP. What now?',
     opts: s => [
       { title: 'Sign a Work-for-Shelter contract', price: 0, fx: { P: -2, E: 1, C: 1, W: -1 }, flag: 'wall_worker',
@@ -340,7 +354,7 @@ STORY.CHECKPOINTS = {
     ]
   },
   match: {
-    n: 6, month: 'DEC', label: 'MATCH',
+    n: 6, month: 'DEC', label: 'PROCREATION',
     q: 'You’ve never met them. Accept, and you’ll never run out of CCP.',
     opts: s => [
       { title: 'Accept the match', price: STORY.matchReward(s), fx: { P: 2, W: 1, C: 1, E: -1 }, flag: 'accepted',

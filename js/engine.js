@@ -9,6 +9,7 @@
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const sign = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
+  const T = STORY.tidy;
 
   const B = STORY.BEATS, N = B.length, CPS = STORY.CHECKPOINTS, UI = STORY.UI, MAX = STORY.START.max;
   const CP_TOTAL = Object.keys(CPS).length;
@@ -116,7 +117,7 @@
       (b.say || []).forEach(c => {
         const e = el('p', 'cap'); bt.append(e);
         caps.push({ el: e, beat: i, spec: c });
-        if (typeof c.html === 'function' || c.when) dyn.push({ beat: i, el: e, spec: c, kind: 'cap' }); else e.innerHTML = `<span>${c.html}</span>`;
+        if (typeof c.html === 'function' || c.when) dyn.push({ beat: i, el: e, spec: c, kind: 'cap' }); else e.innerHTML = `<span>${T(c.html)}</span>`;
       });
       if (b.notice) bt.append(buildNotice(b.notice, i));
       (b.html || []).filter(h => h.layer === 'story').forEach(h => {
@@ -131,7 +132,7 @@
   function buildHero() {
     const h = STORY.HERO, d = el('div', 'hero');
     d.innerHTML = `<p class="eyebrow">${h.eyebrow}</p>
-      <p class="cap"><span>${h.caption}</span></p>
+      <p class="cap"><span>${T(h.caption)}</span></p>
       <button class="btn cta" type="button">${h.cta} <span aria-hidden="true">→</span></button>
       <p class="note">${h.note}</p>
       <div class="timeline">${STORY.TIMELINE.map(([n, m, w]) => `<div><i style="background:${STORY.WORLDS[w].color}"></i>${n}<small>${m}</small></div>`).join('')}</div>`;
@@ -165,10 +166,10 @@
 
   function buildNotice(n, i) {
     const d = el('div', 'notice');
-    d.innerHTML = `<div class="post"></div><div class="sheet">
+    d.innerHTML = `<div class="post"></div><div class="sheet"><div class="frame">
       <p class="nh">${n.header}<small>${n.order}</small></p>
       <div class="nb"><h3>${n.title}</h3><p class="big">${n.big}</p><p class="sub">${n.sub}</p>
-      <p class="lang"><span class="gu" lang="gu">${n.gu}</span> · <em>${n.en}</em></p></div></div>`;
+      <p class="lang"><span class="gu" lang="gu">${n.gu}</span> · <em>${n.en}</em></p></div></div></div>`;
     placed.push({ el: d, kind: 'notice', spec: n, beat: i });
     return d;
   }
@@ -430,7 +431,7 @@
   }
   function message(m) {
     const d = el('div', 'msg' + (m.kind === 'alert' ? ' alert' : ''));
-    d.innerHTML = `<p>${m.from}${m.time ? ` <span>· ${m.time}</span>` : ''}</p><p>${m.text}</p>`;
+    d.innerHTML = `<p>${m.from}${m.time ? ` <span>· ${m.time}</span>` : ''}</p><p>${T(m.text)}</p>`;
     hud.msgs.prepend(d);
     while (hud.msgs.children.length > 2) hud.msgs.lastChild.remove();
     AUDIO.msg();
@@ -477,7 +478,7 @@
     dyn.filter(d => d.beat === i).forEach(d => {
       const sp = d.spec, ok = !sp.when || sp.when(s);
       const html = typeof sp.html === 'function' ? sp.html(s) : sp.html;
-      if (d.kind === 'cap') { d.el.hidden = !ok; d.el.innerHTML = `<span>${html}</span>`; }
+      if (d.kind === 'cap') { d.el.hidden = !ok; d.el.innerHTML = `<span>${T(html)}</span>`; }
       else d.el.innerHTML = html;
     });
   }
@@ -495,14 +496,14 @@
     cpEl.querySelector('.cp-m').textContent = `${w.month} · ${cp.label}`;
     cpEl.querySelector('.cp-dots').innerHTML = Array.from({ length: CP_TOTAL }, (_, j) => `<i class="${j < cp.n ? 'on' : ''}"></i>`).join('');
     cpEl.querySelector('.cp-because').textContent = cp.because ? cp.because(s) : '';
-    cpEl.querySelector('.cp-q').textContent = cp.q;
+    cpEl.querySelector('.cp-q').textContent = T(cp.q);
     const box = cpEl.querySelector('.cp-opts'); box.innerHTML = ''; box.setAttribute('aria-label', cp.q);
     opts.forEach((o, j) => {
       const lock = lockOf(o), p = o.price;
       const b = el('button', 'opt');
       b.type = 'button'; b.disabled = !!lock; b.setAttribute('aria-keyshortcuts', String(j + 1));
       b.innerHTML = `<span class="top"><span class="k" aria-hidden="true">${j + 1}</span><span class="p ${p < 0 || o.priceLabel ? 'minus' : p > 0 ? 'plus' : ''}">${priceText(o)}</span></span>
-        <span class="ti">${o.title}</span><span class="wy">${o.why}</span>${lock ? `<span class="lk">${lock}</span>` : ''}`;
+        <span class="ti">${T(o.title)}</span><span class="wy">${T(o.why)}</span>${lock ? `<span class="lk">${lock}</span>` : ''}`;
       b.addEventListener('click', () => choose(j));
       box.append(b);
     });
@@ -529,7 +530,7 @@
     stage = 'after';
     AUDIO.pick(); btn.classList.add('sel'); cpEl.classList.add('chose');
     const after = cpEl.querySelector('.cp-after');
-    after.querySelector('span').textContent = o.after || '';
+    after.querySelector('span').innerHTML = T(o.after || '');
     setTimeout(() => {
       cpEl.classList.add('after'); after.classList.add('on'); body.classList.remove('cp-on'); AUDIO.duck(false);
       document.activeElement && document.activeElement.blur();
@@ -667,7 +668,7 @@
       worldNow = cw; const w = STORY.WORLDS[cw];
       hud.readout.querySelector('.place').textContent = w.place;
       hud.readout.querySelector('.mon').textContent = w.month;
-      hud.readout.querySelector('.data').innerHTML = w.data.map(d => `<span>${d}</span>`).join('');
+      hud.readout.querySelector('.data').innerHTML = w.data.map(d => `<span>${d}</span>`).join('<span class="sep">·</span>');
       AUDIO.setWorld(cw);
     }
 
