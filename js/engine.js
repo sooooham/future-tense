@@ -441,6 +441,7 @@
       M.t0 = setTimeout(() => {
         M.d.textContent = sign(d); M.d.className = 'd on ' + (d > 0 ? 'plus' : 'minus');
         M.el.classList.remove('up', 'down'); void M.el.offsetWidth; M.el.classList.add(d > 0 ? 'up' : 'down');
+        M.segs.forEach(s => s.classList.remove('flash', 'drop'));
         let k = v - d;
         const tick = () => {
           k += Math.sign(d); paint(k); AUDIO.meter(d > 0);

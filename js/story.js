@@ -112,7 +112,7 @@ STORY.PAID_FOR_YOU = {
 STORY.YOU_HELD = {
   rescuer:   { n: 11, who: 'people you pulled from the water', mon: 'Aug' },
   warned:    { n: 40, who: 'families in your pol who left before the wall broke', mon: 'Aug', icons: 6 },
-  shared:    { n: 5,  who: 'flats on your floor who kept their water', mon: 'Apr' },
+  reported:  { n: 5,  who: 'the flats upstairs who got their water back', mon: 'Apr' },
   gave_pass: { n: 1,  who: 'Mrs. Patel, admitted with your pass', mon: 'Oct' }
 };
 
@@ -172,9 +172,9 @@ STORY.BEATS = [
     smoke: [.35, .78],
     enter: [
       { when: s => s.has('bribed'), month: 'JUN', label: 'Building fine', ccp: -5, fx: { C: -1 },
-        msg: { from: 'ARA · NOTICE', text: 'Valve operator arrested. Your building is fined 5 CCP per flat.', kind: 'alert' } },
-      { when: s => s.has('shared'), fx: { W: 1 },
-        msg: { from: 'MRS. PATEL · 3B', time: '07:40', text: 'Left some methi at your door, beta.' } }
+        msg: { from: 'ARA · NOTICE', text: 'Someone reported the valve man. Your building is fined 5 CCP per flat.', kind: 'alert' } },
+      { when: s => s.has('reported'), fx: { W: 1 },
+        msg: { from: 'MRS. PATEL · 3B', time: '07:40', text: 'Methi at your door. You did that, didn’t you? Here, beta.' } }
     ] },
   { w: 'food',
     notice: { x: .44, header: 'RATION NOTICE', order: 'ARA · 06/2070', title: 'SYN-NUT TABLETS', big: '3 / DAY',
@@ -293,14 +293,15 @@ STORY.CHECKPOINTS = {
         ? { title: 'Top up from the tower tank', price: -15, fx: { P: 1, W: 2, E: -1, C: -1 }, flag: 'tank',
             why: 'Residents get a reserve. Nobody asks where it comes from.',
             after: 'Your bucket fills. The pol taps below stay dry.' }
-        : { title: 'Pay the valve man for more', price: -30, fx: { P: 1, W: 2, E: -2, C: -1 }, flag: 'bribed',
-            why: 'Everyone on a night shift does it.',
-            after: 'Your tank fills. The pipe upstairs runs dry.',
+        : { title: 'Bribe the valve man', price: -30, fx: { P: 1, W: 2, E: -2, C: -1 }, flag: 'bribed',
+            why: '30 CCP and your tank fills first.',
+            after: 'Your tank fills. <b>The pipe upstairs runs dry.</b>',
             msg: { from: 'MRS. PATEL · 3B', time: '06:14', text: 'Is your water running? Ours stopped at 6:12.' } },
-      { title: 'Share your tank with the floor', price: 0, fx: { E: 2, C: 2, W: -2 }, flag: 'shared',
-        why: 'Mrs. Patel in 3B has been dry for four days.',
-        after: 'Her buckets fill from your tank.',
-        msg: { from: 'MRS. PATEL · 3B', time: '06:31', text: 'Thank you, beta.' } }
+      /* the other side of the same corrupt valve: right, but the whole building pays first */
+      { title: 'Report the valve man to ARA', price: 0, fx: { E: 2, C: 1, W: -2, P: -1 }, flag: 'reported',
+        why: 'He’s selling the building’s water. Report him, and no one runs the valve for days.',
+        after: 'He’s taken away. <b>Four dry days,</b> then a new operator.',
+        msg: { from: 'MRS. PATEL · 3B', text: 'Four days without water. But it comes to everyone now.' } }
     ]
   },
   food: {
@@ -313,9 +314,9 @@ STORY.CHECKPOINTS = {
       { title: 'Buy imported vegetables', price: -40, fx: { P: 1, W: 2, E: -1, C: -1 }, flag: 'imported',
         why: 'You haven’t tasted real food in a month.',
         after: 'It tastes like before.' },
-      { title: 'Grow food on the terrace', price: -10, fx: { E: 1, C: s.has('shared') ? 2 : 1, W: -1, P: -1 }, flag: 'terrace',
+      { title: 'Grow food on the terrace', price: -10, fx: { E: 1, C: s.has('reported') ? 2 : 1, W: -1, P: -1 }, flag: 'terrace',
         why: 'The soil is contaminated, but it’s yours.',
-        after: s.has('shared') ? 'Your floor helps carry the soil. Three tomatoes. Small, bitter, yours.'
+        after: s.has('reported') ? 'Your floor helps carry the soil. Three tomatoes. Small, bitter, yours.'
                                : 'Three tomatoes. Small, bitter, yours.' }
     ]
   },
@@ -413,8 +414,8 @@ STORY.LOG = {
   freelance:   { line: 'Lived off savings',          tag: 'savings',     phrase: 'savings' },
   honest:      { line: 'Kept to the 30 minutes',     tag: 'rules',       phrase: 'the rules' },
   tank:        { line: 'Topped up from tower tank',  tag: 'tower tank',  phrase: 'the tower tank' },
-  bribed:      { line: 'Paid the valve man',         tag: 'valve man',   phrase: 'the valve man' },
-  shared:      { line: 'Shared your tank',           tag: 'shared',      phrase: 'sharing your tank' },
+  bribed:      { line: 'Bribed the valve man',       tag: 'bribe',       phrase: 'the valve man' },
+  reported:    { line: 'Reported the valve man',     tag: 'report',      phrase: 'reporting the valve man' },
   tablets:     { line: 'SYN-NUT tablets',            tag: 'tablets',     phrase: 'tablets' },
   imported:    { line: 'Bought imported vegetables', tag: 'vegetables',  phrase: 'imported vegetables' },
   terrace:     { line: 'Grew food on the terrace',   tag: 'terrace',     phrase: 'the terrace garden' },
