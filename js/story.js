@@ -143,7 +143,7 @@ STORY.BEATS = [
   { w: 'work',
     say: [{ html: 'The city still runs. It just doesn’t <b>pay</b> anymore.', x: .1, y: .2 }],
     notice: { x: .38, header: 'PUBLIC NOTICE', order: 'ARA · 02/2070', title: 'WORK FOR SHELTER', big: '8 HRS',
-              sub: 'of labour = 1 bed, 2 meals, 6 h of power', gu: 'આશ્રય માટે કામ', en: 'Work for shelter' },
+              sub: 'of labour = 1 bed + 6&nbsp;h of power', gu: 'આશ્રય માટે કામ', en: 'Work for shelter' },
     props: [{ src: 'chabutra', x: .66, s: 1, layer: 'mid' }, { src: 'pol-mint', x: .8, s: 1.05, layer: 'mid' },
             { src: 'pol-ochre', x: .92, s: .9, layer: 'mid', cls: 'shade' }] },
   { w: 'work', gate: 'work',
@@ -270,7 +270,7 @@ STORY.CHECKPOINTS = {
     q: 'Your mill just shut. Rent is due in CCP. What now?',
     opts: s => [
       { title: 'Sign a Work-for-Shelter contract', price: 0, fx: { P: -2, E: 1, C: 1, W: -1 }, flag: 'wall_worker',
-        why: 'A bunk, two meals and power, for building the river wall.',
+        why: 'A bed and power, for building the river wall.',
         after: 'Contract WFS-88213. You pour concrete on the riverfront.',
         msg: { from: 'ARA · WORK-FOR-SHELTER', text: 'Contract WFS-88213 active. Report 06:00, Riverfront Block C.' } },
       { title: 'Rent a flat in a walled tower', price: -50, fx: { P: 2, W: 1, C: -1 }, flag: 'tower',

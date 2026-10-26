@@ -169,7 +169,7 @@ body:not(.at-hero) .hero .credit { opacity: 0; }
 .idc-note { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 14px; white-space: nowrap; }
 
 /* notices */
-.notice { position: absolute; width: clamp(220px, 21vw, 330px); }
+.notice { position: absolute; width: clamp(240px, 23.5vw, 360px); }
 .notice .post { position: absolute; left: 50%; width: 7px; margin-left: -3px; top: 70%; background: #2a2523; }
 .notice .post::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 90px; height: 12px; transform: translateX(-50%); background: radial-gradient(rgba(0,0,0,.35), transparent 70%); }
 .notice .sheet { position: relative; padding: 6px; background: var(--notice); color: var(--ink); transform: rotate(-2deg); }
@@ -179,7 +179,7 @@ body:not(.at-hero) .hero .credit { opacity: 0; }
 .notice .nb { padding: 12px 14px 12px; }
 .notice h3 { margin: 0; font: 800 clamp(14px, 1.25vw, 19px)/1.1 var(--f-ui); letter-spacing: .02em; }
 .notice .big { font: 800 clamp(40px, 4.4vw, 68px)/1 var(--f-ui); color: #a9502f; letter-spacing: -.01em; margin: 4px 0 2px; }
-.notice .sub { font: 700 clamp(13px, 1vw, 15px)/1.35 var(--f-mono); text-wrap: pretty; }
+.notice .sub { font: 700 clamp(13px, .94vw, 15px)/1.35 var(--f-mono); }
 .notice .lang { margin-top: 6px; font-size: 14px; color: var(--plum); }
 .notice .lang .gu { font-weight: 600; } .notice .lang em { font: italic 400 13px/1 var(--f-mono); color: #4f4540; }
 
