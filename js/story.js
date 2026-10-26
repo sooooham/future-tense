@@ -70,6 +70,8 @@ STORY.METERS = [
    sky/ground = images in assets/img. tint/haze = colour grade over the sky.
    flipSky = mirror the sky (the flood photo's rain then slants like the CSS rain).
    water = flood surface image (graded with tint, drifts and breathes).
+   silt = a dried-silt wash over the ground (December, after the flood).
+   raft = the walker rides the door raft here instead of walking.
    pass = a chip under the wallet while you're in this world, until its checkpoint is answered.
    place/month/data = the readout line next to the logo.
    snd = drone pitch (f), wind level (w), wind filter (wf), rain (r).      */
@@ -93,9 +95,9 @@ STORY.WORLDS = {
             place: 'V.S. HOSPITAL · ELLISBRIDGE', month: 'OCT 2070', data: ['AQI 356', 'NEW CASES 4,200 / DAY'], color: '#bcc46a',
             pass: 'HEALTH PASS 2070 · 1 / 1 UNUSED',   /* chip under the wallet until you decide */
             snd: { f: 43.65, w: .22, wf: 450, r: 0 } },
-  match:  { sky: 'sky-repro',  ground: 'sea-repro-tile', sea: true, tint: '#b49870', haze: '#d8c7a6', tag: 'PROCREATION',
-            place: 'PALDI · WINTER SMOG', month: 'DEC 2070', data: ['BIRTH RATE 0.6', 'MICROPLASTICS IN 97% OF BLOOD'], color: '#d8c7a6',
-            snd: { f: 55, w: .4, wf: 260, r: 0 }, raft: true }
+  match:  { sky: 'sky-repro',  ground: 'ground-intro-tile', silt: true, tint: '#b49870', haze: '#d8c7a6', tag: 'PROCREATION',
+            place: 'PALDI', month: 'DEC 2070', data: ['WINTER SMOG', 'BIRTH RATE 0.6', 'MICROPLASTICS IN 97% OF BLOOD'], color: '#d8c7a6',
+            snd: { f: 55, w: .4, wf: 260, r: 0 } }
 };
 
 /* Hero timeline on the ground */
@@ -230,45 +232,49 @@ STORY.BEATS = [
 
   /* ---- 06 · DEC · PROCREATION ---- */
   { w: 'match',
-    say: [{ html: 'Ahmedabad’s birth rate falls to <b>0.6</b>. The city is running out of children.', x: .1, y: .2 },
+    say: [{ html: 'The population is falling. The state says <b>the future needs more of us.</b>', x: .1, y: .2 },
           { html: s => `Your wallet: <b>${s.ccp} CCP.</b>`, x: .16, y: .32, when: s => s.ccp < 20 }],
-    props: [{ src: 'tower', x: .74, s: .7, layer: 'far', sink: .06 }, { src: 'apartment', x: .3, s: .55, layer: 'far', sink: .09 }] },
+    props: [{ src: 'tower', x: .74, s: .7, layer: 'far' }, { src: 'apartment', x: .3, s: .55, layer: 'far' }] },
   { w: 'match',
-    say: [{ html: 'To repopulate, the state reads <b>health records</b> and matches citizens.', x: .06, y: .2 },
-          { html: 'Matched citizens get CCP for life. <b>Meeting first is not allowed.</b>', x: .1, y: .31 },
-          { html: 'Your record lists an untreated infection. <b>Match score: 71%.</b>', x: .14, y: .42, when: s => s.has('rescuer') && s.has('gave_pass') }],
-    html: [{ x: .66, layer: 'story', cls: 'phone', html: s => STORY.phone(s) }] },
+    say: [{ html: 'Citizens who pass a health screen are <b>matched by genes,</b> and paid to have children.', x: .1, y: .2 },
+          { html: 'A match that has a child earns <b>300 CCP every year.</b>', x: .16, y: .32 },
+          { html: 'Your health record shows an injury that was never treated. <b>Match: 71%.</b>', x: .3, y: .44, when: s => s.has('rescuer') && s.has('gave_pass') }],
+    props: [{ src: 'apartment', x: .7, s: .5, layer: 'far' }] },
   { w: 'match', gate: 'match',
-    props: [{ src: 'apartment', x: .62, s: .5, layer: 'far', sink: .1 }] },
+    html: [{ x: .62, layer: 'story', cls: 'phone', html: s => STORY.phone(s) }] },
 
   /* ---- END ---- */
   { w: 'match', end: true,
     say: [{ html: 'December ends. <b>The ledger prints.</b>', x: .3, y: .3 }] }
 ];
 
-/* The PUNARNIRMAAN phone app (beat 19) */
+/* The PUNARNIRMAAN phone app (procreation checkpoint beat): a dating app, but bureaucratic */
 STORY.matchScore = s => (s.has('rescuer') && s.has('gave_pass')) ? 71 : 94;
 STORY.matchReward = s => (s.has('rescuer') && s.has('gave_pass')) ? 200 : 300;
 STORY.phone = s => `
-  <div class="ph-notch"></div>
+  <p class="ph-buzz note-band">Your phone buzzes.</p>
+  <div class="ph-status"><span>06:40</span><i class="ph-notch"></i><span>AQI 389</span></div>
   <p class="ph-app">PUNARNIRMAAN</p>
   <p class="ph-sub"><span lang="gu">પુનર્નિર્માણ</span> · Repopulation Programme</p>
-  <p class="ph-h">You have been matched.</p>
-  <div class="ph-face" aria-hidden="true"></div>
-  <p class="ph-note">Identity revealed after acceptance</p>
-  <p class="ph-pct">${STORY.matchScore(s)}%</p>
-  <p class="ph-sm">genetic compatibility</p>
+  <p class="ph-h">It’s a match.</p>
+  <div class="ph-card">
+    <div class="ph-face" aria-hidden="true"></div>
+    <p class="ph-note">Revealed once you accept</p>
+    <p class="ph-tags"><span>Ward 9</span><span>27</span><span>Health screen ✓</span></p>
+  </div>
+  <p class="ph-pct"><b>${STORY.matchScore(s)}%</b> genetic match</p>
   <div class="ph-bar"><i style="width:${STORY.matchScore(s)}%"></i></div>
-  <p class="ph-reward"><b>+${STORY.matchReward(s)} CCP for life</b>First child expected by 2072</p>
-  <div class="ph-btns"><span>Accept</span><span>Decline</span></div>
-  <p class="ph-meet">Meet first · NOT PERMITTED</p>
+  <p class="ph-reward"><b>+${STORY.matchReward(s)} CCP / year</b> while your child is healthy</p>
+  <div class="ph-btns"><span class="ph-pass">✕ Pass</span><span class="ph-acc">♥ Accept</span></div>
   <p class="ph-order">Order 12/2070 · ARA</p>`;
 
 /* ---------- checkpoints ----------
    price: CCP change (negative = cost). Options lock if you can't afford them.
    fx: meter changes. flag: remembered for callbacks and the ending.
    why: one line on the card. after: one line once chosen. msg: text under the wallet.
-   opts(s) can swap options based on earlier flags (callbacks).           */
+   opts(s) can swap options based on earlier flags (callbacks).
+   because(s) / lead(s): a label and tan-band lines above the question.
+   wait: ms to hold at the gate before the checkpoint opens (pushing on opens it). */
 STORY.CHECKPOINTS = {
   work: {
     n: 1, month: 'FEB', label: 'EMPLOYMENT',
@@ -367,17 +373,18 @@ STORY.CHECKPOINTS = {
   },
   match: {
     n: 6, month: 'DEC', label: 'PROCREATION',
-    q: 'You’ve never met them. Accept, and you’ll never run out of CCP.',
+    wait: 3000,   /* ms at the gate before the checkpoint opens, so you can read the phone */
+    q: 'Would you bring a child into this city?',
     opts: s => [
-      { title: 'Accept the match', price: STORY.matchReward(s), fx: { P: 2, W: 1, C: 1, E: -1 }, flag: 'accepted',
-        why: 'A home, security, and a child the city is counting on.',
+      { title: 'Accept the match', price: STORY.matchReward(s), priceLabel: `+${STORY.matchReward(s)} CCP / yr`,
+        fx: { P: 2, W: 1, C: 1, E: -1 }, flag: 'accepted',
+        why: `${STORY.matchReward(s)} CCP a year, and the city gets the child it’s asking for.`,
         after: 'Your first appointment is in January.' },
-      { title: 'Decline the match', price: -Math.round(s.ccp * .2), fx: { E: 1, P: -2, W: -1 }, flag: 'declined',
-        free: true, priceLabel: '−20% CCP',
-        why: 'You won’t let a database choose your family.',
-        after: 'Your allowance is cut by 20%.' },
-      { title: 'Meet them first', price: 0, fx: {}, locked: 'NOT PERMITTED',
-        why: 'Not permitted under Order 3/2070.' }
+      /* R2-53: no penalty for passing, for now. To bring one back, give this a price
+         (e.g. price: -Math.round(s.ccp * .2), free: true, priceLabel: '−20% CCP') and a new after-line. */
+      { title: 'Pass', price: 0, fx: { E: 1, P: -1 }, flag: 'declined',
+        why: 'Not into this air. Not for money.',
+        after: 'The app shows you another match tomorrow.' }
     ]
   }
 };

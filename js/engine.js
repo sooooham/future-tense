@@ -71,10 +71,10 @@
         /* flood: the sea photo, graded with the flood tint (R2-35) */
         r.ground = el('div', 'water'); r.ground.style.backgroundImage = `url(assets/img/${w.water}.webp)`;
         r.ground.style.setProperty('--tint', w.tint); r.water = true;
-      } else if (w.sea) {
-        r.ground = el('div', 'sea'); r.ground.style.backgroundImage = `url(assets/img/${w.ground}.webp)`;
       } else {
-        r.ground = el('div', 'ground'); r.ground.style.backgroundImage = `url(assets/img/${w.ground}.webp)`;
+        r.ground = el('div', 'ground' + (w.silt ? ' silt' : ''));
+        r.ground.style.backgroundImage = (w.silt ? 'linear-gradient(rgba(226, 208, 176, .42), rgba(206, 186, 152, .3)), ' : '') + `url(assets/img/${w.ground}.webp)`;
+        r.ground.style.setProperty('--tint', w.tint);
       }
       d.append(r.ground, r.near);
       if (w.rain) { r.rain = el('div', 'rain', '<i></i>'); d.append(r.rain); }
@@ -223,7 +223,7 @@
       r.sky.style.left = -W * .06 + 'px';
     });
 
-    const ps = phone ? .8 : 1, edge = phone ? 66 : 28;
+    const ps = phone ? .8 : 1, edge = phone ? 88 : 28;
     placed.forEach(p => {
       const s = p.spec, e = p.el;
       if (p.kind === 'prop') {
@@ -242,7 +242,7 @@
         const post = e.querySelector('.post');
         post.style.top = '60px'; post.style.height = Math.max(0, H * .745 - top - 60) + 'px';
       } else if (p.kind === 'story') {
-        e.style.top = H * (phone ? .2 : .14) + 'px';
+        e.style.top = Math.max(H * (phone ? .22 : .14), (H - e.offsetHeight) / 2 + 24) + 'px';
         e.style.left = Math.min(s.x * W, W - e.offsetWidth - edge) + 'px';
       }
     });
@@ -330,7 +330,12 @@
     if (stage === 'cp') { if (Math.abs(d) > 2) nudge(); return; }
     const lim = limitX(), mn = minX();
     let t = cam.target + d;
-    if (t > lim) { if (d > 0 && cam.target >= lim - 2) nudge(); t = lim; }
+    if (t > lim) {
+      const g = B[lim / W | 0]?.gate;
+      if (d > 0 && cam.target >= lim - 2 && arrived[g]) arrived[g] = -1e9;   /* pushing on: stop waiting */
+      else if (d > 0 && cam.target >= lim - 2) nudge();
+      t = lim;
+    }
     cam.target = clamp(t, mn, lim);
     lastInput = performance.now();
   }
@@ -611,7 +616,7 @@
   }
 
   /* ---------- the camera, every frame ---------- */
-  let last = performance.now(), worldNow = null, tagNow = null, endTimer = null;
+  let last = performance.now(), worldNow = null, tagNow = null, endTimer = null, arrived = {};
   function frame(t) {
     const dt = Math.min(50, t - last); last = t;
     const k = 1 - Math.pow(1 - (reduced ? .3 : .085), dt / 16.7);
@@ -669,7 +674,7 @@
         /* a slow drift (~8px/s) and a 2–3px breath; static under reduced motion */
         r.ground.style.backgroundPositionX = `${-o + drift * 8}px`;
         r.ground.style.transform = `translate3d(0, ${Math.sin(drift * .8) * 2.5}px, 0)`;
-      } else r.ground.style.backgroundPositionX = `${-o + (r.ground.classList.contains('sea') ? drift * 9 : 0)}px`;
+      } else r.ground.style.backgroundPositionX = `${-o}px`;
     });
     const J = $('#join');
     if (join) {
@@ -691,6 +696,9 @@
     const lean = reduced ? 0 : clamp(v * .12, -3, 4);
     actor.walker.style.transform = `translate3d(${walk.x}px, ${-bob}px, 0) rotate(${lean}deg)`;
     actor.walker.style.opacity = 1 - raftK;
+    /* on a narrow screen the walker steps aside when a story object (the phone) needs the space */
+    const covered = phone && placed.some(p => p.kind === 'story' && Math.abs(p.beat * W - cur) < W * .5 && p.el.offsetLeft + p.beat * W - cur < walk.x + walk.w);
+    body.classList.toggle('actor-hide', covered);
     const rt = t / 1000, rb = reduced ? 0 : Math.sin(rt * 1.6) * 4, rr = reduced ? 0 : Math.sin(rt * 1.1) * 1.2;
     actor.raft.style.transform = `translate3d(0, ${rb}px, 0) rotate(${rr}deg)`;
     actor.raft.style.opacity = raftK;
@@ -755,7 +763,12 @@
     if (stage === 'walk') {
       for (let i = 0; i < N; i++) {
         const g = B[i].gate;
-        if (CPS[g] && !gateDone(g) && cur >= i * W - 2) { openCP(i); break; }
+        if (CPS[g] && !gateDone(g) && cur >= i * W - 2) {
+          /* `wait`: hold at the gate so you can look (the phone) before the world blurs */
+          const at = arrived[g] || (arrived[g] = t);
+          if (!CPS[g].wait || t - at >= CPS[g].wait) openCP(i);
+          break;
+        }
       }
       if (cpNow && cpNow.done && Math.abs(cur - cpNow.beat * W) > W * .18) closeAfter();
       const endI = B.findIndex(b => b.end);
@@ -776,7 +789,7 @@
   function replay() {
     fade.classList.add('on');
     setTimeout(() => {
-      fresh({ name: S.name, entered: true, signed: true });
+      fresh({ name: S.name, entered: true, signed: true }); arrived = {};
       ENDING.close();
       body.classList.remove('ending', 'cp-on'); cpEl.className = ''; cpNow = null;
       hud.msgs.innerHTML = ''; actor.prints.innerHTML = ''; clearTimeout(endTimer); endTimer = null;
@@ -789,7 +802,7 @@
 
   /* ---------- debug: ?debug  ·  ?debug&beat=12&path=1,2,1 ---------- */
   function jump(n, path = []) {
-    fresh({ name: S.name, entered: true, signed: true });
+    fresh({ name: S.name, entered: true, signed: true }); arrived = {};
     cpNow = null; cpEl.className = ''; body.classList.remove('cp-on', 'ending', 'at-hero'); body.classList.add('docked', 'signed');
     nameInput.value = S.name; cardEl.classList.add('signed');
     let c = 0;
