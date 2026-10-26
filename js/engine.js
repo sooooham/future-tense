@@ -180,13 +180,12 @@
   function buildHud() {
     STORY.METERS.forEach(mt => {
       const d = el('div', 'mt');
-      d.innerHTML = `<span class="d"></span><span class="ic">${mt.icon}</span><span class="bar">${'<i></i>'.repeat(MAX)}</span><span class="l">${mt.name}</span>`;
+      d.innerHTML = `<span class="v"></span><span class="d"></span><span class="pv" aria-hidden="true"></span><span class="ic">${mt.icon}</span><span class="bar">${'<i></i>'.repeat(MAX)}</span><span class="l">${mt.name}</span>`;
       d.setAttribute('role', 'meter'); d.setAttribute('aria-label', mt.name);
       d.setAttribute('aria-valuemin', 0); d.setAttribute('aria-valuemax', MAX);
       hud.meters.append(d);
-      meterEls[mt.k] = { el: d, d: d.querySelector('.d'), segs: [...d.querySelectorAll('.bar i')] };
+      meterEls[mt.k] = { el: d, d: d.querySelector('.d'), v: d.querySelector('.v'), pv: d.querySelector('.pv'), segs: [...d.querySelectorAll('.bar i')] };
     });
-    $('.cp-keys').textContent = UI.keys;
     $('#hint span').textContent = UI.hint;
     $('.wl-h span').textContent = STORY.ID;
     $('.wl-cap').textContent = STORY.HERO.wallet;
@@ -274,6 +273,7 @@
     const hx = phone ? W - ww - 16 : W * .76, hy = phone ? 14 : H * .26;
     hud.wallet.style.setProperty('--hero', `translate(${hx - hud.wallet.offsetLeft}px, ${hy - hud.wallet.offsetTop}px)`);
     hud.stamp.style.left = hud.wallet.offsetLeft + ww + 14 + 'px';
+    hud.msgs.style.top = phone ? '' : hud.readout.offsetTop + hud.readout.offsetHeight + 16 + 'px';
 
     [...hud.prog.querySelectorAll('i')].forEach(t => { t.style.left = (t.dataset.i / (N - 1)) * 100 + '%'; });
 
@@ -424,32 +424,51 @@
     clearTimeout(s.t); s.t = setTimeout(() => s.classList.remove('on'), 2900);
     AUDIO.stamp(); delta < 0 ? AUDIO.debit() : AUDIO.credit();
   }
+  /* meters (R2-20): the delta chip shows for 3.5s, segments fill or drain one at a
+     time with a tick, and the whole meter flashes once (tan up, rust down) */
   function metersUi(deltas = {}, instant) {
     let n = 0;
     STORY.METERS.forEach(mt => {
       const M = meterEls[mt.k], v = S.m[mt.k], d = deltas[mt.k] || 0;
       M.el.setAttribute('aria-valuenow', v);
-      const paint = () => M.segs.forEach((s, j) => {
-        s.classList.toggle('on', j < v);
-        s.classList.toggle('flash', !instant && d > 0 && j >= v - d && j < v);
-        s.classList.toggle('drop', !instant && d < 0 && j >= v && j < v - d);
-      });
-      if (!d || instant) { paint(); if (instant) M.d.className = 'd'; return; }
-      const at = 250 + n++ * 160;
-      setTimeout(() => {
-        paint(); AUDIO.meter(d > 0);
+      const paint = k => { M.v.textContent = k; M.segs.forEach((s, j) => s.classList.toggle('on', j < k)); };
+      clearTimeout(M.t0); clearInterval(M.iv);
+      if (!d || instant) {
+        paint(v);
+        if (instant) { clearTimeout(M.t); M.d.className = 'd'; M.el.classList.remove('up', 'down'); M.segs.forEach(s => s.classList.remove('flash', 'drop')); }
+        return;
+      }
+      M.t0 = setTimeout(() => {
         M.d.textContent = sign(d); M.d.className = 'd on ' + (d > 0 ? 'plus' : 'minus');
-        clearTimeout(M.t); M.t = setTimeout(() => { M.d.className = 'd'; M.segs.forEach(s => s.classList.remove('flash', 'drop')); }, 4200);
-      }, instant || reduced ? 0 : at);
+        M.el.classList.remove('up', 'down'); void M.el.offsetWidth; M.el.classList.add(d > 0 ? 'up' : 'down');
+        let k = v - d;
+        const tick = () => {
+          k += Math.sign(d); paint(k); AUDIO.meter(d > 0);
+          M.segs[d > 0 ? k - 1 : k].classList.add(d > 0 ? 'flash' : 'drop');
+          if (k === v) clearInterval(M.iv);
+        };
+        if (reduced) { M.segs.forEach((s, j) => { if (d > 0 ? j >= v - d && j < v : j >= v && j < v - d) s.classList.add(d > 0 ? 'flash' : 'drop'); }); paint(v); AUDIO.meter(d > 0); }
+        else { tick(); if (k !== v) M.iv = setInterval(tick, 150); }
+        clearTimeout(M.t); M.t = setTimeout(() => { M.d.className = 'd'; M.el.classList.remove('up', 'down'); M.segs.forEach(s => s.classList.remove('flash', 'drop')); }, 3500);
+      }, reduced ? 0 : 250 + n++ * 220);
     });
   }
+  /* choice preview: ↑ / ↓ beside the meters a card would move, no numbers */
+  function preview(o) {
+    STORY.METERS.forEach(mt => {
+      const d = o ? (o.fx[mt.k] || 0) : 0, pv = meterEls[mt.k].pv;
+      pv.textContent = d > 0 ? '↑' : d < 0 ? '↓' : '';
+      pv.className = 'pv' + (d > 0 ? ' up' : d < 0 ? ' down' : '');
+    });
+  }
+  /* one message at a time, top-centre under the readout (R2-21) */
   function message(m) {
+    [...hud.msgs.children].forEach(o => { o.classList.add('out'); setTimeout(() => o.remove(), 400); });
     const d = el('div', 'msg' + (m.kind === 'alert' ? ' alert' : ''));
-    d.innerHTML = `<p>${m.from}${m.time ? ` <span>· ${m.time}</span>` : ''}</p><p>${T(m.text)}</p>`;
-    hud.msgs.prepend(d);
-    while (hud.msgs.children.length > 2) hud.msgs.lastChild.remove();
+    d.innerHTML = `<p>${m.from}${m.time ? ` · ${m.time}` : ''}</p><p>${T(m.text)}</p>`;
+    hud.msgs.append(d);
     AUDIO.msg();
-    setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 600); }, 9000);
+    setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 600); }, 8000);
   }
   const say = t => { live.textContent = ''; setTimeout(() => { live.textContent = t.replace(/<[^>]+>/g, ''); }, 60); };
 
@@ -512,22 +531,43 @@
     cpEl.querySelector('.cp-because').textContent = cp.because ? cp.because(s) : '';
     cpEl.querySelector('.cp-q').textContent = T(cp.q);
     const box = cpEl.querySelector('.cp-opts'); box.innerHTML = ''; box.setAttribute('aria-label', cp.q);
+    box.style.setProperty('--n', opts.length);
+    let armed = -1, lastPointer = '';
     opts.forEach((o, j) => {
       const lock = lockOf(o), p = o.price;
       const b = el('button', 'opt');
       b.type = 'button'; b.disabled = !!lock; b.setAttribute('aria-keyshortcuts', String(j + 1));
-      b.innerHTML = `<span class="top"><span class="k" aria-hidden="true">${j + 1}</span><span class="p ${p < 0 || o.priceLabel ? 'minus' : p > 0 ? 'plus' : ''}">${priceText(o)}</span></span>
-        <span class="ti">${T(o.title)}</span><span class="wy">${T(o.why)}</span>${lock ? `<span class="lk">${lock}</span>` : ''}`;
-      b.addEventListener('click', () => choose(j));
+      b.innerHTML = `<span class="top"><span class="k" aria-hidden="true">${j + 1}</span><span class="p ${p < 0 ? 'minus' : p > 0 ? 'plus' : ''}">${priceText(o)}</span></span>
+        <span class="ti">${T(o.title)}</span><span class="wy">${T(o.why)}</span>${lock ? `<span class="lk">${lock}</span>` : `<span class="ta" aria-hidden="true">${UI.tapAgain}</span>`}`;
+      b.addEventListener('pointerdown', e => { lastPointer = e.pointerType; });
+      const held = () => { const f = [...box.children].findIndex(c => c.matches(':focus-visible')); return opts[armed >= 0 ? armed : f] || null; };
+      b.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') preview(o); });
+      b.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') preview(held()); });
+      b.addEventListener('focus', () => { if (b.matches(':focus-visible')) preview(o); });
+      b.addEventListener('blur', () => setTimeout(() => preview(held()), 0));
+      /* touch: the first tap shows what's at stake, the second one chooses */
+      b.addEventListener('click', () => {
+        if (lastPointer === 'touch' && armed !== j) {
+          armed = j; preview(o);
+          [...box.children].forEach((c, i) => c.classList.toggle('armed', i === j));
+          lastPointer = ''; return;
+        }
+        choose(j);
+      });
       box.append(b);
     });
+    /* the meter strip slides in next to the cards so the arrows sit beside them */
+    if (!phone) {
+      const r = box.lastElementChild.getBoundingClientRect().right, m = hud.meters.getBoundingClientRect().left;
+      hud.meters.style.setProperty('--cp-shift', Math.max(0, m - r - 48) + 'px');
+    }
     const after = cpEl.querySelector('.cp-after'); after.className = 'cp-after';
     cpEl.className = 'on'; body.classList.add('cp-on');
     AUDIO.duck(true); hud.hint.classList.remove('on');
     setTimeout(() => {
       if (cpNow?.id !== id) return;
       cpEl.classList.add('show'); cpNow.ready = true;
-      say(`${UI.checkpoint} ${cp.n}/${CP_TOTAL}. ${cp.q}`);
+      say(`${UI.checkpoint} ${cp.n}/${CP_TOTAL}. ${cp.q} ${UI.keys(opts.length)}`);
       const first = box.querySelector('.opt:not(:disabled)'); first && first.focus({ preventScroll: true });
     }, reduced ? 100 : 800);
   }
@@ -542,7 +582,7 @@
     const r = apply({ ccp: o.price, fx: o.fx, flag: o.flag, mon: cp.month, label: o.title, logIt: true });
     if (silent) { cpNow = null; return r; }
     stage = 'after';
-    AUDIO.pick(); btn.classList.add('sel'); cpEl.classList.add('chose');
+    AUDIO.pick(); btn.classList.add('sel'); cpEl.classList.add('chose'); preview(null);
     const after = cpEl.querySelector('.cp-after');
     after.querySelector('span').innerHTML = T(o.after || '');
     setTimeout(() => {

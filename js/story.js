@@ -391,7 +391,8 @@ STORY.ESSAY_URL = '#essay';   /* "Why 2070 is closer than it sounds" — essay p
 /* ---------- interface words (engine.js) ---------- */
 STORY.UI = {
   checkpoint: 'CHECKPOINT',
-  keys: 'Press 1, 2 or 3',
+  keys: n => n === 2 ? 'Press 1 or 2.' : 'Press 1, 2 or 3.',   /* screen readers only */
+  tapAgain: 'Tap again to choose',
   need: n => `NEED ${n} CCP`,
   debited: 'DEBITED', credited: 'CREDITED',
   hint: 'Keep walking',
