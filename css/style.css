@@ -55,33 +55,28 @@ img { display: block; }
 .run .ground::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 18%; background: linear-gradient(rgba(0,0,0,.14), transparent); }
 .prop { position: absolute; height: auto; pointer-events: none; }
 .prop.shade { filter: brightness(.82) saturate(.9); }
+.prop.bob { animation: bob 3.4s ease-in-out infinite; }
+@keyframes bob { 50% { translate: 0 2px; rotate: -1deg; } }
 .layer .html { position: absolute; }
 
-/* flood water + rain */
+/* flood water (R2-35): the sea photo, graded brown-green */
+.run .sky.flip { scale: -1 1; }
 .run .water {
-  left: 0; right: 0; bottom: 0; height: calc(var(--ground) + 3%);
-  background: linear-gradient(#6e6556, #4c463c 45%, #2f2b25);
+  left: 0; right: 0; bottom: -4px; height: calc(var(--ground) + 3% + 4px);
+  background-repeat: repeat-x; background-size: auto 100%; background-color: #2c2a22; will-change: transform;
 }
-.water .rip {
-  position: absolute; inset: 0; background-repeat: repeat; opacity: .9;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='140'%3E%3Cg stroke='%23ece5d8' stroke-opacity='.35' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M165 40h39'/%3E%3Cpath d='M333 14h18'/%3E%3Cpath d='M420 26h37'/%3E%3Cpath d='M298 16h46'/%3E%3Cpath d='M109 11h19'/%3E%3Cpath d='M222 109h18'/%3E%3Cpath d='M123 25h49'/%3E%3Cpath d='M217 17h66'/%3E%3Cpath d='M289 33h28'/%3E%3Cpath d='M322 17h50'/%3E%3Cpath d='M299 103h17'/%3E%3Cpath d='M113 13h49'/%3E%3Cpath d='M439 36h32'/%3E%3Cpath d='M214 38h48'/%3E%3Cpath d='M60 80h49'/%3E%3Cpath d='M417 48h20'/%3E%3C/g%3E%3C/svg%3E");
-}
-.water .rip.b { opacity: .8; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='90'%3E%3Cg stroke='%23ece5d8' stroke-opacity='.22' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M297 75h54'/%3E%3Cpath d='M96 49h20'/%3E%3Cpath d='M280 10h50'/%3E%3Cpath d='M30 81h27'/%3E%3Cpath d='M254 70h41'/%3E%3Cpath d='M160 61h51'/%3E%3Cpath d='M232 48h33'/%3E%3Cpath d='M127 25h58'/%3E%3Cpath d='M124 12h50'/%3E%3Cpath d='M153 69h45'/%3E%3C/g%3E%3C/svg%3E"); }
-.water .bits i { position: absolute; height: 4px; border-radius: 1px; background: #a18763; opacity: .8; }
-.water .bits i:nth-child(3n) { background: #c9c2b4; width: 16px !important; }
-.water .bits i:nth-child(4n) { background: #5f7a86; }
+.run .water::before { content: ''; position: absolute; inset: 0; background: #6d5a3a; mix-blend-mode: color; opacity: .55; }
+.run .water::after { content: ''; position: absolute; inset: 0; background: linear-gradient(var(--tint) 0, transparent 30%, rgba(36, 30, 22, .55) 75%); mix-blend-mode: multiply; opacity: .5; }
 .run .sea { left: 0; right: 0; bottom: 0; height: var(--ground); background-repeat: repeat-x; background-size: auto 100%; }
 .run .sea::after { content: ''; position: absolute; inset: 0; background: #6d5d44; mix-blend-mode: color; opacity: .35; }
 .run .rain { inset: -10% 0 0; pointer-events: none; }
+/* rain (R2-36): one layer of thin bone streaks, falling down-left like the sky photo */
 .rain i {
-  position: absolute; inset: 0; opacity: .5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg stroke='%23d8dcd6' stroke-width='1.2' stroke-linecap='round' opacity='.7'%3E%3Cpath d='M20 10l-7 26M90 40l-7 26M160 5l-7 26M60 120l-7 26M130 150l-7 26M200 100l-7 26M35 185l-7 26M175 200l-7 26M110 85l-7 26'/%3E%3C/g%3E%3C/svg%3E");
-  animation: rain .55s linear infinite;
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg stroke='%23ece5d8' stroke-opacity='.25' stroke-width='1'%3E%3Cpath d='M40 20l-11 24M170 70l-11 24M110 150l-11 24M220 190l-11 24M60 205l-11 24M195 5l-11 24'/%3E%3C/g%3E%3C/svg%3E");
+  animation: rain 1.5s linear infinite;
 }
-.rain i.b { opacity: .3; background-size: 140px 140px; animation-duration: .8s; }
-@keyframes rain { to { background-position: -60px 220px; } }
-.rain i.b { animation-name: rain-b; }
-@keyframes rain-b { to { background-position: -38px 140px; } }
+@keyframes rain { to { background-position: -110px 240px; } }
 
 /* food smoke */
 .smoke { position: absolute; width: 22vw; height: 60vh; transform: translateX(-50%); pointer-events: none; }
@@ -584,7 +579,7 @@ body.notrans *, body.notrans *::before { transition: none !important; }
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .2s !important; transition-delay: 0s !important; }
-  .rain i, .smoke i, #hint.on { animation: none !important; }
+  .rain i, .smoke i, #hint.on, .prop.bob { animation: none !important; }
   .smoke i { opacity: .5; transform: translate(-50%, -40%) scale(1.6); }
   #stamp.on { animation: none !important; opacity: .95; transform: rotate(-8deg); }
   body.cp-on #world, body.cp-on #track, body.cp-on #actor { filter: brightness(.55) saturate(.5); }

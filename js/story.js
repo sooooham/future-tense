@@ -68,6 +68,8 @@ STORY.METERS = [
 
 /* ---------- worlds ----------
    sky/ground = images in assets/img. tint/haze = colour grade over the sky.
+   flipSky = mirror the sky (the flood photo's rain then slants like the CSS rain).
+   water = flood surface image (graded with tint, drifts and breathes).
    place/month/data = the readout line next to the logo.
    snd = drone pitch (f), wind level (w), wind filter (wf), rain (r).      */
 STORY.WORLDS = {
@@ -83,7 +85,7 @@ STORY.WORLDS = {
   food:   { sky: 'sky-food',   ground: 'ground-food-tile',   tint: '#8a5d8f', haze: '#b78aa0', tag: 'FOOD',
             place: 'WHEAT FIELDS · SANAND', month: 'JUN 2070', data: ['48°C', 'AQI 418', 'BURNING STUBBLE'], color: '#b78aa0',
             snd: { f: 46.25, w: .3, wf: 380, r: 0 } },
-  flood:  { sky: 'sky-flood',  ground: null, water: true, rain: true, tint: '#3f6f6a', haze: '#7c8c84', tag: 'FLOOD',
+  flood:  { sky: 'sky-flood',  flipSky: true, ground: null, water: 'sea-repro-tile', rain: true, tint: '#3f6f6a', haze: '#7c8c84', tag: 'FLOOD',
             place: 'RIVERFRONT · PALDI', month: 'AUG 2070', data: ['412 mm / 24 h', 'DHAROI GATES OPEN'], color: '#6f9a92',
             snd: { f: 41.2, w: .5, wf: 900, r: .55 }, raft: true },
   health: { sky: 'sky-health', ground: 'ground-health-tile', tint: '#a7b13a', haze: '#c9cf7c', tag: 'HEALTH',
@@ -197,7 +199,8 @@ STORY.BEATS = [
     say: [{ html: 'The rich built upwards. <b>Their towers have boats.</b>', x: .08, y: .2 },
           { html: 'You built that wall. <b>You know where it cracks.</b>', x: .14, y: .32, when: s => s.has('wall_worker') },
           { html: 'Your tower’s wall holds. The water it pushes away <b>floods the pol next door.</b>', x: .14, y: .32, when: s => s.has('tower') }],
-    props: [{ src: 'tower', x: .6, s: 1.05, layer: 'mid', sink: .03 }, { src: 'pol-ochre', x: .3, s: .85, layer: 'mid', sink: .13 }],
+    props: [{ src: 'tower', x: .6, s: 1.05, layer: 'mid', sink: .03 }, { src: 'pol-ochre', x: .3, s: .85, layer: 'mid', sink: .13 },
+            { src: 'tower-boat', x: .622, s: 1.4, layer: 'mid', sink: -.027, cls: 'bob' }],
     enter: [{ when: s => s.has('tower'), fx: { E: -1 } }] },
   { w: 'flood', gate: 'flood',
     props: [{ src: 'apartment', x: .55, s: .8, layer: 'mid', sink: .12 }, { src: 'pol-mint', x: .2, s: .9, layer: 'mid', sink: .15 }] },

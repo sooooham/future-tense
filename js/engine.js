@@ -14,7 +14,7 @@
   const B = STORY.BEATS, N = B.length, CPS = STORY.CHECKPOINTS, UI = STORY.UI, MAX = STORY.START.max;
   const CP_TOTAL = Object.keys(CPS).length;
   const NAT = { 'pol-ochre': 300, 'pol-mint': 280, 'pol-rose': 320, chabutra: 300, apartment: 270, hospital: 290, tower: 540,
-    'dead-tree': 420, sapling: 90, 'farm-hut': 150, 'jhulta-minar': 320, 'teen-darwaza': 190, motera: 160, mill: 420 };
+    'dead-tree': 420, sapling: 90, 'farm-hut': 150, 'jhulta-minar': 320, 'teen-darwaza': 190, motera: 160, mill: 420, 'tower-boat': 36 };
   const PAR = { far: .55, mid: .85, near: 1 };
   const SKY_DRIFT = .06;
   const params = new URLSearchParams(location.search);
@@ -62,23 +62,22 @@
     runs.forEach((r, k) => {
       const w = STORY.WORLDS[r.w], d = el('div', 'run');
       d.dataset.w = r.w;
-      r.sky = el('div', 'sky'); r.sky.style.backgroundImage = `url(assets/img/${w.sky}.webp)`;
+      r.sky = el('div', 'sky' + (w.flipSky ? ' flip' : '')); r.sky.style.backgroundImage = `url(assets/img/${w.sky}.webp)`;
       const grade = el('div', 'grade'); grade.style.background = w.tint;
       r.far = el('div', 'layer far'); r.mid = el('div', 'layer mid'); r.near = el('div', 'layer near');
       const haze = el('div', 'haze'); haze.style.background = `linear-gradient(transparent, ${w.haze} 55%, transparent)`;
       d.append(r.sky, grade, r.far, haze, r.mid);
       if (w.water) {
-        r.ground = el('div', 'water', '<div class="rip"></div><div class="rip b"></div><div class="bits"></div>');
-        const bits = r.ground.querySelector('.bits');
-        for (let j = 0; j < 14; j++) { const b = el('i'); b.dataset.x = Math.random(); b.dataset.y = .12 + Math.random() * .8; b.style.width = (8 + Math.random() * 18) + 'px'; bits.append(b); }
-        r.rips = r.ground.querySelectorAll('.rip'); r.bits = [...bits.children];
+        /* flood: the sea photo, graded with the flood tint (R2-35) */
+        r.ground = el('div', 'water'); r.ground.style.backgroundImage = `url(assets/img/${w.water}.webp)`;
+        r.ground.style.setProperty('--tint', w.tint); r.water = true;
       } else if (w.sea) {
         r.ground = el('div', 'sea'); r.ground.style.backgroundImage = `url(assets/img/${w.ground}.webp)`;
       } else {
         r.ground = el('div', 'ground'); r.ground.style.backgroundImage = `url(assets/img/${w.ground}.webp)`;
       }
       d.append(r.ground, r.near);
-      if (w.rain) { r.rain = el('div', 'rain', '<i></i><i class="b"></i>'); d.append(r.rain); }
+      if (w.rain) { r.rain = el('div', 'rain', '<i></i>'); d.append(r.rain); }
       r.el = d; r.haze = w.haze; r.k = k;
       host.append(d);
 
@@ -659,13 +658,10 @@
       r.mid.style.transform = `translate3d(${-o * PAR.mid}px,0,0)`;
       r.near.style.transform = `translate3d(${-o}px,0,0)`;
       const drift = reduced ? 0 : t / 1000;
-      if (r.rips) {
-        r.rips[0].style.backgroundPositionX = `${-o * 1.05 + drift * 18}px`;
-        r.rips[1].style.backgroundPositionX = `${40 - o * 1.2 - drift * 26}px`;
-        r.bits.forEach((b, j) => {
-          const span = W * 1.4, x = ((+b.dataset.x * span - o - drift * (6 + j % 4 * 3)) % span + span) % span - W * .2;
-          b.style.transform = `translate3d(${x}px, ${+b.dataset.y * G + Math.sin(drift * 1.3 + j) * 2}px, 0)`;
-        });
+      if (r.water) {
+        /* a slow drift (~8px/s) and a 2–3px breath; static under reduced motion */
+        r.ground.style.backgroundPositionX = `${-o + drift * 8}px`;
+        r.ground.style.transform = `translate3d(0, ${Math.sin(drift * .8) * 2.5}px, 0)`;
       } else r.ground.style.backgroundPositionX = `${-o + (r.ground.classList.contains('sea') ? drift * 9 : 0)}px`;
     });
     const J = $('#join');
