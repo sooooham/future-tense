@@ -2,9 +2,11 @@
 
 *One year in Paldi, Ahmedabad, 2070.*
 
-A scroll-driven interactive story. Carbon is the currency. Six climate crises arrive two months apart — work, water, food, flood, health, and a state repopulation programme. At each checkpoint you choose how to survive; every choice spends Carbon Credit Points and moves four meters: Privilege, Ethics, Personal Welfare and Community Welfare. At the end, the city prints your year as a receipt — and tells you who paid for it.
+A scroll-driven interactive story. Carbon is the currency. Six climate crises arrive two months apart — employment, water, food, flood, health, and a state repopulation programme. At each checkpoint you choose how to survive; every choice spends Carbon Credit Points and moves four meters: Privilege, Ethics, Personal Welfare and Community Welfare. At the end, the city prints your year as a receipt — and tells you who paid for it.
 
-Design & story: Soham Sharma. Built with plain HTML, CSS and JavaScript. Sound is generated live with Web Audio.
+**Designed by Soham Sharma · Coded in collaboration with Claude Code**
+
+Built with plain HTML, CSS and JavaScript. Sound is generated live with Web Audio.
 
 ## Run it locally
 

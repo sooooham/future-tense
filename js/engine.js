@@ -131,12 +131,13 @@
 
   function buildHero() {
     const h = STORY.HERO, d = el('div', 'hero');
-    d.innerHTML = `<p class="eyebrow">${h.eyebrow}</p>
+    d.innerHTML = `<p class="credit note-band">${STORY.CREDIT}</p>
+      <p class="eyebrow">${h.eyebrow}</p>
       <p class="cap"><span>${T(h.caption)}</span></p>
       <button class="btn cta" type="button">${h.cta} <span aria-hidden="true">→</span></button>
-      <p class="note">${h.note}</p>
+      <p class="note note-band">${h.note}</p>
       <div class="timeline">${STORY.TIMELINE.map(([n, m, w]) => `<div><i style="background:${STORY.WORLDS[w].color}"></i>${n}<small>${m}</small></div>`).join('')}</div>`;
-    d.querySelector('.cta').addEventListener('click', () => enter(true));
+    d.querySelector('.cta').addEventListener('click', enter);
     return d;
   }
 
@@ -144,12 +145,12 @@
     const c = STORY.IDCARD, L = UI.card, d = el('div', 'idc');
     d.innerHTML = `<p class="cap"><span>${c.caption}</span></p>
       <div class="card">
-        <div class="hd"><p>${c.authority}<b>${c.title}</b></p><span class="gu" lang="gu">${c.city}</span></div>
+        <div class="hd"><p>${c.authority}</p><span class="gu" lang="gu">${c.city}</span></div>
         <div class="bd">
           <div><div class="ph"></div><div class="bars"></div></div>
           <div>
             <label for="nm">${L.name}</label>
-            <div class="nm"><input id="nm" maxlength="20" autocomplete="off" spellcheck="false" value="${STORY.DEFAULT_NAME}"><span aria-hidden="true">${L.edit}</span></div>
+            <div class="nm"><input id="nm" maxlength="20" autocomplete="off" spellcheck="false" placeholder="${STORY.DEFAULT_NAME}"></div>
             <dl><dt>${L.id}</dt><dd>${STORY.ID}</dd><dt>${L.zone}</dt><dd>${c.zone}</dd><dt>${L.balance}</dt><dd>${STORY.START.ccp} CCP</dd></dl>
           </div>
         </div>
@@ -157,7 +158,7 @@
         <div class="sig" aria-hidden="true">${L.signed}</div>
       </div>
       <button class="btn sign" type="button">${c.button} <span aria-hidden="true">→</span></button>
-      <p class="idc-note">${c.note}</p>`;
+      <p class="idc-note">${c.note.map(t => `<span class="note-band">${t}</span>`).join('')}</p>`;
     nameInput = d.querySelector('input'); signBtn = d.querySelector('.sign'); cardEl = d.querySelector('.card');
     signBtn.addEventListener('click', doSign);
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doSign(); } });
@@ -188,15 +189,26 @@
     $('.cp-keys').textContent = UI.keys;
     $('#hint span').textContent = UI.hint;
     $('.wl-h span').textContent = STORY.ID;
+    $('.wl-cap').textContent = STORY.HERO.wallet;
     const p = hud.prog;
     B.forEach((b, i) => { if (CPS[b.gate]) { const t = el('i'); t.dataset.cp = b.gate; t.dataset.i = i; p.append(t); } });
-    hud.sound.addEventListener('click', () => { AUDIO.toggle(); soundUi(); });
+    hud.sound.addEventListener('click', () => setSound(!soundWanted));
+    soundUi();
+  }
+  /* sound is on by default (R2-11). Browsers only allow it after a gesture, so it
+     starts on entering the story; if that was a scroll, the next click or key resumes it. */
+  let soundWanted = true;
+  function setSound(on) {
+    soundWanted = on;
+    if (S.entered || AUDIO.ctx) AUDIO.toggle(on);
     soundUi();
   }
   function soundUi() {
-    hud.sound.setAttribute('aria-pressed', AUDIO.on);
-    hud.sound.querySelector('span').textContent = AUDIO.on ? UI.soundOn : UI.soundOff;
+    hud.sound.setAttribute('aria-pressed', soundWanted);
+    hud.sound.querySelector('span').textContent = soundWanted ? UI.soundOn : UI.soundOff;
   }
+  const resumeAudio = () => { if (AUDIO.on && AUDIO.ctx && AUDIO.ctx.state !== 'running') AUDIO.ctx.resume(); };
+  ['pointerdown', 'keydown', 'touchend'].forEach(ev => addEventListener(ev, resumeAudio, true));
 
   /* ---------- layout (on load + resize) ---------- */
   function layout() {
@@ -250,6 +262,8 @@
     hc.style.top = lt + lh + 24 + 'px';
     cta.style.top = lt + lh + 24 + hc.offsetHeight + 34 + 'px';
     note.style.top = lt + lh + 24 + hc.offsetHeight + 34 + cta.offsetHeight + 12 + 'px';
+    /* phone: the credit line sits under the note instead of top-right (the wallet is there) */
+    heroEl.querySelector('.credit').style.top = phone ? note.offsetTop + note.offsetHeight + 10 + 'px' : '';
 
     /* the logo docks with one uniform scale (FLIP-style, stays crisp at both ends) */
     const fs = parseFloat(getComputedStyle(L).fontSize), sc = 20 / fs, dockX = phone ? 16 : 28, dockY = phone ? 14 : 22;
@@ -308,7 +322,7 @@
   let lastInput = performance.now();
   function push(d) {
     if (stage === 'end') return;
-    if (stage === 'hero') { if (d > 0) enter(false); return; }
+    if (stage === 'hero') { if (d > 0) enter(); return; }
     if (stage === 'cp') { if (Math.abs(d) > 2) nudge(); return; }
     const lim = limitX(), mn = minX();
     let t = cam.target + d;
@@ -352,21 +366,21 @@
     if (stage === 'end') return;
     const fwd = ['ArrowRight', 'ArrowDown', 'PageDown', 'd', 'D'].includes(e.key) || (e.key === ' ' && !onControl);
     const back = ['ArrowLeft', 'ArrowUp', 'PageUp', 'a', 'A'].includes(e.key);
-    if (stage === 'hero' && (fwd || (e.key === 'Enter' && !onControl))) { e.preventDefault(); enter(true); return; }
+    if (stage === 'hero' && (fwd || (e.key === 'Enter' && !onControl))) { e.preventDefault(); enter(); return; }
     if (fwd) { e.preventDefault(); push(W * (e.key === 'PageDown' ? .6 : .22)); }
     else if (back) { e.preventDefault(); push(-W * (e.key === 'PageUp' ? .6 : .22)); }
-    else if (e.key === 'm' || e.key === 'M') { AUDIO.toggle(); soundUi(); }
+    else if (e.key === 'm' || e.key === 'M') setSound(!soundWanted);
   });
 
   /* ---------- prologue ---------- */
-  function enter(withSound) {
+  function enter() {
     if (S.entered) return;
     S.entered = true; stage = 'id';
-    if (withSound && !AUDIO.on) { AUDIO.toggle(true); soundUi(); }
+    if (soundWanted && !AUDIO.on) setSound(true);
     body.classList.remove('at-hero'); body.classList.add('docked'); styleLogo();
     walk.target = W * (phone ? .05 : .07);
     cam.target = W;
-    setTimeout(() => signBtn.focus({ preventScroll: true }), 1100);
+    setTimeout(() => nameInput.focus({ preventScroll: true }), 1100);
   }
   function doSign() {
     if (S.signed) return;
@@ -375,7 +389,7 @@
     S.signed = true; stage = 'walk';
     cardEl.classList.add('signed'); body.classList.add('signed');
     AUDIO.stamp();
-    say(`${STORY.IDCARD.title}: ${S.name}. ${UI.wallet(S.ccp)}`);
+    say(`${UI.signedAs(S.name)} ${UI.wallet(S.ccp)}`);
     setTimeout(() => { cam.target = Math.max(cam.target, 2 * W); }, 650);
     signBtn.blur();
   }

@@ -32,19 +32,21 @@ STORY.DEFAULT_NAME = 'CITIZEN-4417';
 /* ---------- prologue copy ---------- */
 STORY.HERO = {
   eyebrow: 'PALDI, AHMEDABAD · 2070',
-  caption: 'Carbon is the currency now. You start with <b>100 CCP</b>. Every choice you make spends it.',
+  caption: 'Carbon is the currency now. You start with <b>100 CCP</b>.<br>Every choice you make spends it.',
   cta: 'STEP INTO 2070',
-  note: 'One year · six crises · about 7 minutes · sound on'
+  note: 'One year · six crises · about 7 minutes',
+  wallet: 'Your wallet. Always on screen.'
 };
+/* shown on the hero (top right) and on the final screen; also in README.md */
+STORY.CREDIT = 'Designed by Soham Sharma · Coded in collaboration with Claude Code';
 STORY.IDCARD = {
   caption: '<b>No ID, no water.</b> Sign here.',
-  authority: 'AHMEDABAD RESOURCE AUTHORITY',
-  title: 'CARBON CITIZEN ID',
+  authority: 'AHMEDABAD RESOURCE AUTHORITY · ARA',
   city: 'અમદાવાદ',
   zone: 'Paldi · Ward 12',
   fine: 'Every gram of carbon you use is recorded against this ID.',
   button: 'SIGN',
-  note: 'Keep the default or type your own name. Every choice you make is logged against it.'
+  note: [`Type your name, or leave it blank to stay ${STORY.DEFAULT_NAME}.`, 'Every choice you make is logged against it.']
 };
 STORY.END_CAPTION_DELAY = 1600;   /* ms after the last caption before the ledger prints */
 
@@ -394,7 +396,8 @@ STORY.UI = {
   debited: 'DEBITED', credited: 'CREDITED',
   hint: 'Keep walking',
   soundOn: 'Sound on', soundOff: 'Sound off',
-  card: { name: 'NAME', id: 'ID', zone: 'ZONE', balance: 'OPENING BALANCE', edit: '✎ edit', signed: 'SIGNED' },
+  card: { name: 'NAME', id: 'ID', zone: 'ZONE', balance: 'OPENING BALANCE', signed: 'SIGNED' },
+  signedAs: n => `Carbon ID signed: ${n}.`,
   meterMoves: d => d.map(x => `${x.name} ${x.d > 0 ? 'up' : 'down'} ${Math.abs(x.d)}`).join(', '),
   wallet: (ccp, d) => `Wallet ${ccp} CCP${d ? (d < 0 ? `, ${-d} debited` : `, ${d} credited`) : ''}.`,
   chosen: t => `You chose: ${t}.`
