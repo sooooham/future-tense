@@ -27,7 +27,7 @@
   const body = document.body, hud = { logo: $('#logo'), readout: $('#readout'), wallet: $('#wallet'), stamp: $('#stamp'),
     msgs: $('#msgs'), meters: $('#meters'), sound: $('#sound'), hint: $('#hint'), prog: $('#prog') };
   const actor = { prints: $('#prints'), walker: $('#walker'), raft: $('#raft'), tag: $('#tag') };
-  const cpEl = $('#cp'), live = $('#live'), fade = $('#fade');
+  const cpEl = $('#cp'), live = $('#live'), fade = $('#fade'), passEl = $('#pass');
 
   /* ---------- state ---------- */
   let S;
@@ -188,6 +188,7 @@
     $('#hint span').textContent = UI.hint;
     $('.wl-h span').textContent = STORY.ID;
     $('.wl-cap').textContent = STORY.HERO.wallet;
+    passEl.textContent = (Object.values(STORY.WORLDS).find(w => w.pass) || {}).pass || '';
     const p = hud.prog;
     B.forEach((b, i) => { if (CPS[b.gate]) { const t = el('i'); t.dataset.cp = b.gate; t.dataset.i = i; p.append(t); } });
     hud.sound.addEventListener('click', () => setSound(!soundWanted));
@@ -245,11 +246,14 @@
         e.style.left = Math.min(s.x * W, W - e.offsetWidth - edge) + 'px';
       }
     });
+    /* captions never sit under the health pass chip (it hangs below the wallet) */
+    const chip = { r: passEl.offsetLeft + passEl.offsetWidth + 12, b: hud.wallet.offsetTop + hud.wallet.offsetHeight + 10 + passEl.offsetHeight + 14 };
     caps.forEach(c => {
       if (!c.el.classList.contains('cap')) return;
-      const s = c.spec;
-      c.el.style.left = (phone ? W * .05 : Math.max(s.x * W, 250)) + 'px';
-      c.el.style.top = (phone ? (s.y - .2) * H * .9 + H * .3 : s.y * H) + 'px';
+      const s = c.spec, left = phone ? W * .05 : Math.max(s.x * W, 250);
+      let top = phone ? (s.y - .2) * H * .9 + H * .3 : s.y * H;
+      if (!phone && STORY.WORLDS[B[c.beat].w].pass && left < chip.r) top = Math.max(top, chip.b);
+      c.el.style.left = left + 'px'; c.el.style.top = top + 'px';
     });
 
     /* hero: caption, CTA and note stack under the big logo */
@@ -273,6 +277,7 @@
     hud.wallet.style.setProperty('--hero', `translate(${hx - hud.wallet.offsetLeft}px, ${hy - hud.wallet.offsetTop}px)`);
     hud.stamp.style.left = hud.wallet.offsetLeft + ww + 14 + 'px';
     hud.msgs.style.top = phone ? '' : hud.readout.offsetTop + hud.readout.offsetHeight + 16 + 'px';
+    passEl.style.top = hud.wallet.offsetTop + hud.wallet.offsetHeight + 10 + 'px';
 
     [...hud.prog.querySelectorAll('i')].forEach(t => { t.style.left = (t.dataset.i / (N - 1)) * 100 + '%'; });
 
@@ -528,7 +533,9 @@
     cpEl.querySelector('.cp-l').textContent = UI.checkpoint;
     cpEl.querySelector('.cp-m').textContent = `${w.month} · ${cp.label}`;
     cpEl.querySelector('.cp-dots').innerHTML = Array.from({ length: CP_TOTAL }, (_, j) => `<i class="${j < cp.n ? 'on' : ''}"></i>`).join('');
-    cpEl.querySelector('.cp-because').textContent = cp.because ? cp.because(s) : '';
+    const because = cp.because ? cp.because(s) : '', lead = cp.lead ? cp.lead(s) : [];
+    cpEl.querySelector('.cp-because').textContent = because;
+    cpEl.querySelector('.cp-lead').innerHTML = lead.map(t => `<p><span>${T(t)}</span></p>`).join('');
     cpEl.querySelector('.cp-q').textContent = T(cp.q);
     const box = cpEl.querySelector('.cp-opts'); box.innerHTML = ''; box.setAttribute('aria-label', cp.q);
     box.style.setProperty('--n', opts.length);
@@ -567,7 +574,7 @@
     setTimeout(() => {
       if (cpNow?.id !== id) return;
       cpEl.classList.add('show'); cpNow.ready = true;
-      say(`${UI.checkpoint} ${cp.n}/${CP_TOTAL}. ${cp.q} ${UI.keys(opts.length)}`);
+      say([`${UI.checkpoint} ${cp.n}/${CP_TOTAL}.`, because, ...lead, cp.q, UI.keys(opts.length)].filter(Boolean).join(' '));
       const first = box.querySelector('.opt:not(:disabled)'); first && first.focus({ preventScroll: true });
     }, reduced ? 100 : 800);
   }
@@ -720,8 +727,13 @@
       hud.readout.querySelector('.place').textContent = w.place;
       hud.readout.querySelector('.mon').textContent = w.month;
       hud.readout.querySelector('.data').innerHTML = w.data.map(d => `<span>${d}</span>`).join('<span class="sep">·</span>');
+      if (w.pass) passEl.textContent = w.pass;
       AUDIO.setWorld(cw);
     }
+
+    /* the health pass chip, until the pass is decided */
+    const pw = STORY.WORLDS[worldNow];
+    passEl.classList.toggle('on', !!pw.pass && stage !== 'end' && !(B.find(b => b.w === worldNow && CPS[b.gate])?.gate in S.answers));
 
     /* captions fade up as you approach */
     caps.forEach(c => {

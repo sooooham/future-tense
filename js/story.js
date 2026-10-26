@@ -70,6 +70,7 @@ STORY.METERS = [
    sky/ground = images in assets/img. tint/haze = colour grade over the sky.
    flipSky = mirror the sky (the flood photo's rain then slants like the CSS rain).
    water = flood surface image (graded with tint, drifts and breathes).
+   pass = a chip under the wallet while you're in this world, until its checkpoint is answered.
    place/month/data = the readout line next to the logo.
    snd = drone pitch (f), wind level (w), wind filter (wf), rain (r).      */
 STORY.WORLDS = {
@@ -89,7 +90,8 @@ STORY.WORLDS = {
             place: 'RIVERFRONT · PALDI', month: 'AUG 2070', data: ['412 mm / 24 h', 'DHAROI GATES OPEN'], color: '#6f9a92',
             snd: { f: 41.2, w: .5, wf: 900, r: .55 }, raft: true },
   health: { sky: 'sky-health', ground: 'ground-health-tile', tint: '#a7b13a', haze: '#c9cf7c', tag: 'HEALTH',
-            place: 'V.S. HOSPITAL · ELLISBRIDGE', month: 'OCT 2070', data: ['AQI 356', 'FEVER CASES 4,200'], color: '#bcc46a',
+            place: 'V.S. HOSPITAL · ELLISBRIDGE', month: 'OCT 2070', data: ['AQI 356', 'NEW CASES 4,200 / DAY'], color: '#bcc46a',
+            pass: 'HEALTH PASS 2070 · 1 / 1 UNUSED',   /* chip under the wallet until you decide */
             snd: { f: 43.65, w: .22, wf: 450, r: 0 } },
   match:  { sky: 'sky-repro',  ground: 'sea-repro-tile', sea: true, tint: '#b49870', haze: '#d8c7a6', tag: 'PROCREATION',
             place: 'PALDI · WINTER SMOG', month: 'DEC 2070', data: ['BIRTH RATE 0.6', 'MICROPLASTICS IN 97% OF BLOOD'], color: '#d8c7a6',
@@ -207,9 +209,9 @@ STORY.BEATS = [
 
   /* ---- 05 · OCT · HEALTH ---- */
   { w: 'health',
-    say: [{ html: 'After the monsoon comes <b>fever.</b>', x: .14, y: .2 },
-          { html: 'Four months of SYN-NUT. <b>You’re anaemic.</b>', x: .2, y: .31, when: s => s.has('tablets') },
-          { html: 'Your cut leg is <b>hot and swollen.</b>', x: .2, y: .31, when: s => s.has('rescuer') && !s.has('tablets') }],
+    say: [{ html: 'The floodwater leaves something behind: a <b>new water-borne disease.</b>', x: .14, y: .2 },
+          { html: 'Hospitals fill in a week. The state rations care: <b>one visit per citizen, per year.</b>', x: .2, y: .31 },
+          { html: 'Four months of SYN-NUT. <b>You’re anaemic.</b>', x: .3, y: .42, when: s => s.has('tablets') }],
     props: [{ src: 'pol-ochre', x: .02, s: .95, layer: 'mid' }, { src: 'hospital', x: .42, s: 1, layer: 'mid' }],
     enter: [
       { when: s => s.has('tablets'), fx: { W: -1 } },
@@ -218,10 +220,10 @@ STORY.BEATS = [
     ] },
   { w: 'health',
     notice: { x: .56, header: 'HEALTH ORDER', order: 'ARA · 10/2070', title: 'HOSPITAL ACCESS', big: '1 PASS',
-              sub: 'per citizen, per year · no exceptions', gu: 'એક વ્યક્તિ, એક પાસ', en: 'One person, one pass' },
-    say: [{ html: s => s.has('shared')
-              ? 'A knock at 2 a.m. It’s <b>Mrs. Patel.</b> She once left methi at your door.'
-              : 'A knock at 2 a.m. It’s <b>Mrs. Patel</b> from 3B.', x: .06, y: .2 }],
+              sub: 'per citizen, per year<br>from 1 October', gu: 'એક વ્યક્તિ, એક પાસ', en: 'One person, one pass' },
+    /* you're healthy, for now: the stake is the risk of catching it later with no pass */
+    say: [{ html: 'The disease is moving through your building <b>floor by floor.</b>', x: .06, y: .2 },
+          { html: 'The cut on your leg from August <b>still hasn’t healed.</b>', x: .12, y: .31, when: s => s.has('rescuer') }],
     props: [{ src: 'apartment', x: .02, s: .6, layer: 'far' }, { src: 'pol-mint', x: .84, s: .95, layer: 'mid' }] },
   { w: 'health', gate: 'health',
     props: [{ src: 'pol-rose', x: .66, s: 1, layer: 'mid' }, { src: 'sapling', x: .3, s: 1, layer: 'near', sink: .03 }] },
@@ -344,18 +346,22 @@ STORY.CHECKPOINTS = {
   },
   health: {
     n: 5, month: 'OCT', label: 'HEALTH',
-    q: 'She has fever from the floodwater. She used her own pass in August.',
-    because: s => s.has('shared') ? 'BECAUSE YOU SHARED YOUR WATER IN APRIL' : '',
+    q: 'One pass. Keep it for yourself, or give it to her?',
+    because: s => s.has('reported') ? 'BECAUSE YOU REPORTED THE VALVE MAN IN APRIL' : '',
+    /* lead: lines in tan bands above the question */
+    lead: s => ['A knock at 2 a.m. <b>Mrs. Patel</b> has it too.', 'Her pass went on her first visit.',
+                s.has('reported') && 'She once left <b>methi</b> at your door.'].filter(Boolean),
     opts: s => [
-      { title: 'Give her your pass', price: 0, fx: { E: 2, C: 2, W: s.has('rescuer') ? -3 : -2 }, flag: 'gave_pass',
-        why: s.has('rescuer') ? 'Your own leg is swelling. You’ll have nothing left.' : 'You’ll have nothing if you fall sick.',
-        after: 'She is admitted. You watch your own fever.',
+      { title: 'Keep it for yourself', price: 0, fx: { P: 1, W: 1, E: -1, C: -1 }, flag: 'kept_pass',
+        why: s.has('rescuer') ? 'Get the leg seen while you still can.' : 'Half your floor has it. You could be next.',
+        after: 'The pass stays in your wallet. You avoid her window.' },
+      { title: 'Give it to her', price: 0, fx: { E: 2, C: 2, W: s.has('rescuer') ? -3 : -2 }, flag: 'gave_pass',
+        why: s.has('rescuer') ? 'Your leg will have to heal on its own.' : 'If you catch it, you’re on your own.',
+        after: s.has('rescuer') ? 'She’s admitted. Your leg takes two months to close.'
+                                : 'She’s admitted. In November you catch it, and get through it at home.',
         msg: { from: 'V.S. HOSPITAL', text: 'Pass AMD-4417 transferred. Patient admitted: Patel, H.' } },
-      { title: 'Keep it, just in case', price: 0, fx: { P: 1, W: 1, E: -1, C: -1 }, flag: 'kept_pass',
-        why: 'One pass. One body. Yours.',
-        after: 'The card stays in your wallet. You avoid her window.' },
       { title: 'Sell it to her son', price: 40, fx: { P: 2, W: 1, E: -2, C: -2 }, flag: 'sold_pass',
-        why: 'He offers 40 CCP. You haven’t eaten properly in weeks.',
+        why: 'He offers 40 CCP. Medicine at the chemist costs 30.',
         after: 'Her son doesn’t look at you.' }
     ]
   },
