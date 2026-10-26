@@ -54,16 +54,16 @@ STORY.END_CAPTION_DELAY = 1600;   /* ms after the last caption before the ledger
 STORY.METERS = [
   { k: 'P', name: 'Privilege',
     icon: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="10" y="2" width="4" height="3"/><rect x="7" y="8" width="10" height="3"/><rect x="4" y="14" width="16" height="3"/><rect x="1" y="20" width="22" height="3"/></svg>',
-    ask: 'How much ease or constraint shaped the world you moved through – and how deeply did that foundation decide your fate?' },
+    ask: 'Some of your choices were only open because you could pay. Who around you never had them?' },
   { k: 'E', name: 'Ethics',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square"><path d="M3.5 2.5 12 12l8.5-9.5M12 12v10.5"/></svg>',
-    ask: 'In a life built around survival, where do you draw the line between responsibility and self-interest – and what does it cost to keep caring?' },
+    ask: 'When surviving meant bending a rule, where did you stop, and why there?' },
   { k: 'W', name: 'Personal Welfare',
     icon: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="17" width="2.6" height="5"/><rect x="8.2" y="4" width="2.6" height="18"/><rect x="13.4" y="14" width="2.6" height="8"/><rect x="18.6" y="19" width="2.6" height="3"/></svg>',
-    ask: 'How did you balance endurance with empathy – and what parts of yourself did you trade away just to keep surviving?' },
+    ask: 'How much of your own health and rest did you give up, and for whom?' },
   { k: 'C', name: 'Community Welfare',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7"/></svg>',
-    ask: 'How invested were you in the shared fabric that held you – and how much did you return to the systems that kept you standing?' }
+    ask: 'Your floor, your pol, Mrs. Patel: are they better or worse off because of you?' }
 ];
 
 /* ---------- worlds ----------
@@ -106,7 +106,8 @@ STORY.TIMELINE = [
   ['FLOOD', 'AUG 2070', 'flood'], ['HEALTH', 'OCT 2070', 'health'], ['PROCREATION', 'DEC 2070', 'match']
 ];
 
-/* ---------- people who paid for you / people you held ---------- */
+/* ---------- people who paid for you / people you held ----------
+   Not shown on the site any more (R2-62). Kept for a share card later. */
 STORY.PAID_FOR_YOU = {
   bribed:     { who: 'the flat upstairs',        mon: 'Apr', why: 'its pipe ran dry so your tank could fill' },
   tank:       { who: 'the pol below your tower', mon: 'Apr', why: 'its taps stayed dry while the tower tank filled' },
@@ -390,20 +391,19 @@ STORY.CHECKPOINTS = {
 };
 
 /* ---------- verdicts (first match wins) ---------- */
+/* direct and reflective, not dramatic (R2-61). a = regular line, b = italic line */
 STORY.VERDICTS = [
   { when: s => (s.has('sold_pass') || (s.has('bribed') && s.has('tower_boat'))) && s.m.C <= 4,
-    a: 'You survived.', b: 'Someone else paid.' },
+    a: 'You got through the year.', b: 'Other people paid part of the cost.' },
   { when: s => s.has('rescuer') && s.has('gave_pass'),
-    a: 'You gave away the pass you needed.', b: 'She lived. Your leg healed slowly.' },
+    a: 'You gave more than you kept.', b: 'Your leg is still healing.' },
   { when: s => s.m.E >= 9 && s.m.W <= 4,
-    a: 'You kept your conscience.', b: 'It cost you your health.' },
+    a: 'You held on to your values.', b: 'Your health paid for them.' },
   { when: s => s.m.C >= 9,
-    a: 'You held people up,', b: 'and sometimes they held you.' },
+    a: 'You looked after the people around you.', b: 'Some of them looked after you.' },
   { when: () => true,
-    a: 'Every choice built', b: 'the city that broke you.' }
+    a: 'You got through the year,', b: 'one trade-off at a time.' }
 ];
-
-STORY.ESSAY_URL = '#essay';   /* "Why 2070 is closer than it sounds" — essay page comes later */
 
 /* ---------- interface words (engine.js) ---------- */
 STORY.UI = {
@@ -423,29 +423,29 @@ STORY.UI = {
 
 /* ---------- receipt (ending.js) ----------
    LOG: per choice / callback — line = printed on the receipt, tag = tiny chart label,
-   phrase = how the decode notes name it. Missing entries fall back to the card title. */
+   unit = printed after the amount. Missing entries fall back to the card title. */
 STORY.LOG = {
-  wall_worker: { line: 'Signed Work-for-Shelter',   tag: 'shelter',     phrase: 'the shelter contract' },
-  tower:       { line: 'Rented a walled tower flat', tag: 'tower flat', phrase: 'the tower flat' },
-  freelance:   { line: 'Lived off savings',          tag: 'savings',     phrase: 'savings' },
-  honest:      { line: 'Kept to the 30 minutes',     tag: 'rules',       phrase: 'the rules' },
-  tank:        { line: 'Topped up from tower tank',  tag: 'tower tank',  phrase: 'the tower tank' },
-  bribed:      { line: 'Bribed the valve man',       tag: 'bribe',       phrase: 'the valve man' },
-  reported:    { line: 'Reported the valve man',     tag: 'report',      phrase: 'reporting the valve man' },
-  tablets:     { line: 'SYN-NUT tablets',            tag: 'tablets',     phrase: 'tablets' },
-  imported:    { line: 'Bought imported vegetables', tag: 'vegetables',  phrase: 'imported vegetables' },
-  terrace:     { line: 'Grew food on the terrace',   tag: 'terrace',     phrase: 'the terrace garden' },
-  camp:        { line: 'Went to Motera camp',        tag: 'camp',        phrase: 'the camp' },
-  tower_boat:  { line: 'Bought a tower boat seat',   tag: 'boat',        phrase: 'a boat seat' },
-  warned:      { line: 'Warned your pol',            tag: 'warned',      phrase: 'warning your pol' },
-  rescuer:     { line: 'Stayed to help rescue',      tag: 'rescue',      phrase: 'the rescue' },
-  gave_pass:   { line: 'Gave away your pass',        tag: 'pass',        phrase: 'giving away your pass' },
-  kept_pass:   { line: 'Kept your pass',             tag: 'pass',        phrase: 'keeping your pass' },
-  sold_pass:   { line: 'Sold the hospital pass',     tag: 'sold pass',   phrase: 'selling the pass' },
-  accepted:    { line: 'Accepted the match',         tag: 'match',       phrase: 'the match' },
-  declined:    { line: 'Declined the match',         tag: '20% cut',     phrase: 'the 20% cut' },
-  'Building fine':    { line: 'Building fine',       tag: 'fine',        phrase: 'a building fine' },
-  'Boat to hospital': { line: 'Boat to hospital',    tag: 'boat',        phrase: 'the hospital boat' }
+  wall_worker: { line: 'Signed Work-for-Shelter',    tag: 'shelter' },
+  tower:       { line: 'Rented a walled tower flat', tag: 'tower flat' },
+  freelance:   { line: 'Lived off savings',          tag: 'savings' },
+  honest:      { line: 'Kept to the 30 minutes',     tag: 'rules' },
+  tank:        { line: 'Topped up from tower tank',  tag: 'tower tank' },
+  bribed:      { line: 'Bribed the valve man',       tag: 'bribe' },
+  reported:    { line: 'Reported the valve man',     tag: 'report' },
+  tablets:     { line: 'SYN-NUT tablets',            tag: 'tablets' },
+  imported:    { line: 'Bought imported vegetables', tag: 'vegetables' },
+  terrace:     { line: 'Grew food on the terrace',   tag: 'terrace' },
+  camp:        { line: 'Went to the Motera camp',    tag: 'camp' },
+  tower_boat:  { line: 'Bought a tower boat seat',   tag: 'boat' },
+  warned:      { line: 'Warned your pol',            tag: 'warned' },
+  rescuer:     { line: 'Stayed to help rescue',      tag: 'rescue' },
+  kept_pass:   { line: 'Used the pass',              tag: 'pass' },
+  gave_pass:   { line: 'Gave the pass',              tag: 'pass' },
+  sold_pass:   { line: 'Sold the pass',              tag: 'sold pass' },
+  accepted:    { line: 'Accepted the match',         tag: '/ yr', unit: '/ yr' },
+  declined:    { line: 'Passed on the match',        tag: 'passed' },
+  'Building fine':    { line: 'Building fine',       tag: 'fine' },
+  'Boat to hospital': { line: 'Boat to hospital',    tag: 'boat' }
 };
 STORY.MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 STORY.RECEIPT = {
@@ -461,46 +461,16 @@ STORY.RECEIPT = {
   stamp: ['SURVIVED', '2070']
 };
 
-/* ---------- decode notes (ending.js) ----------
-   Each gets the facts ending.js read from your run and returns one plain line. */
-const listOf = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
-const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
-const monName = m => ({ JAN: 'January', FEB: 'February', MAR: 'March', APR: 'April', MAY: 'May', JUN: 'June', JUL: 'July',
-  AUG: 'August', SEP: 'September', OCT: 'October', NOV: 'November', DEC: 'December', Apr: 'April', Aug: 'August', Oct: 'October' })[m] || m;
-STORY.DECODE = {
-  /* d = {low, lowMon, start, close, debits:[short], credits:[short]} */
-  balance: d => {
-    const spent = d.debits.length ? `${cap1(listOf(d.debits))} took it down to <b>${d.low} CCP</b> in ${monName(d.lowMon)}.`
-                                  : `You never spent a point. The lowest it went was <b>${d.low} CCP</b>.`;
-    const back = d.credits.length ? ` ${cap1(listOf(d.credits))} brought it back.` : ' Nothing brought it back.';
-    return spent + back;
-  },
-  /* d = {up:[names], down:[names], flat:[names]} */
-  meters: d => {
-    const a = d.up.length > 1 ? `${listOf(d.up)} climbed together.` : d.up.length ? `Only ${d.up[0]} climbed.` : 'None of your meters climbed.';
-    const b = d.down.length > 1 ? ` ${listOf(d.down)} fell at the same moments.` : d.down.length ? ` ${d.down[0]} paid for it.` : ' Nothing fell for it.';
-    return a + b;
-  },
-  /* d = [{who, mon, why}] */
-  paid: d => {
-    const months = [...new Set(d.map(x => monName(x.mon)))];
-    return `${listOf(months)} cost other people. ` + d.map(x => `${cap1(x.who)}: ${x.why}.`).join(' ');
-  },
-  /* d = [{n, who}] */
-  held: d => d.length
-    ? `Nobody paid for you. You held ${listOf(d.map(x => `${x.n === 1 ? '' : x.n + ' '}${x.who}`))}.`
-    : 'Nobody paid for you, and nobody leaned on you. You got through alone.',
-  /* d = {reward} */
-  accepted: d => `The match paid <b>${d.reward} CCP</b>. One decision earned more than a year of work.`,
-  declined: d => `You declined the match. The city cut your allowance by 20%: <b>−${d.cut} CCP</b>, logged against your name.`
-};
-
+/* ---------- ending screen (ending.js) ---------- */
 STORY.ENDING = {
-  people: 'WHO HELD YOU UP · WHO YOU HELD',
-  paidLine: d => `${d.length} who paid for you: ${listOf(d.map(x => `${x.who} (${x.mon})`))}.`,
-  heldLine: x => x.n === 1 ? `${cap1(x.who)}.` : `${x.n} ${x.who}.`,
-  nobody: 'Nobody paid for you. Nobody needed you to.',
-  strongest: 'STRONGEST'
+  eyebrow: 'DECEMBER 2070 · THE LEDGER PRINTS',
+  lede: 'Every choice was logged against your ID.<br>This is your year, in data.',
+  toVerdict: 'WHAT IT SAYS ABOUT YOU',
+  strongest: name => `YOUR STRONGEST METER · ${name}`,
+  meter: name => name,
+  meters: 'Your four meters. Choose one to read its question.',
+  question: 'Would you live differently next time?',
+  again: 'LIVE 2070 AGAIN'
 };
 
 window.STORY = STORY;
