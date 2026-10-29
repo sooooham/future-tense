@@ -1,3 +1,6 @@
 .DS_Store
 node_modules/
 *.log
+future-tense.zip
+HANDOFF-full-spec.md
+CHANGES-round-3.md
